@@ -7,17 +7,11 @@
 # Copyright 2011 Pitecan Systems. All rights reserved.
 #
 
-# framework 'InputMethodKit'
-
 # require 'rubygems'
 # http://ferrous26.com/blog/2012/04/03/axelements-part1/
 
 # require 'accessibility/string'
 # include Accessibility::String
-
-# require 'WordSearch'
-# require 'Romakana'
-# require 'Crypt'
 
 class GyaimController < IMKInputController
   #extend IB
@@ -41,7 +35,11 @@ class GyaimController < IMKInputController
   end
 
   def initWithServer(server, delegate:d, client:c)
-    # puts "initWithServer===============@@ws = #{@@ws}"
+    #File.open("/tmp/loglog","w"){ |f|
+    #  f.puts "initWithServer===============@@ws = #{@@ws}"
+    #  f.puts "initWithServer delegate=#{d}, client="#{c}"
+    #}
+    # STDERR.puts "initWithServer===============@@ws = #{@@ws}"
     # Log.log "initWithServer delegate=#{d}, client="#{c}"
     @client = c   # Lexierraではこれをnilにしてた。何故?
 

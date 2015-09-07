@@ -9,20 +9,21 @@ class AppDelegate
   #def init
   #  puts "AppDelegate start"
   #end
-
-  @candWindowController = CandWindowController.alloc.initWithWindowNibName('MainMenu')
-  puts @candWindowController.class
-  # @candWindowController.window.makeKeyAndOrderFront(self)
-  
-  #
-  # IMKServerに接続
-  #
-  identifier = NSBundle.mainBundle.bundleIdentifier
-  server = IMKServer.alloc.initWithName("Gyaim_Connection",bundleIdentifier:identifier)
     
   def applicationDidFinishLaunching(notification)
     # puts Crypt.encrypt("xxxxx")
-    puts "App start"
+    puts "AppDidFinishLaunching"
+    
+    @candWindowController = CandWindowController.alloc.initWithWindowNibName('MainMenu')
+    puts @candWindowController.class
+    @candWindowController.window.makeKeyAndOrderFront(self)
+
+    #
+    # IMKServerに接続
+    #
+    identifier = NSBundle.mainBundle.bundleIdentifier
+    server = IMKServer.alloc.initWithName("Gyaim_Connection",bundleIdentifier:identifier)
+    puts server
   end
 
   attr_accessor :candwin

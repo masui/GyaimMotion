@@ -31,9 +31,12 @@ Motion::Project::App.setup do |app|
   app.info_plist['InputMethodConnectionName'] = "Gyaim_Connection"
   app.info_plist['InputMethodServerControllerClass'] = "GyaimController"
   app.info_plist['InputMethodServerDelegateClass'] = "GyaimController"
-  app.info_plist['LSBackgroundOnoly'] = true
+  app.info_plist['LSApplicationCategoryType'] = "public.app-category.productivity"
+  
+  app.info_plist['LSBackgroundOnly'] = true
   app.info_plist['NSMainNibFile'] = "MainMenu"
   app.info_plist['tsInputMethodIconFileKey'] = "icon.tiff"
+  app.info_plist['CFBundleDevelopmentRegion'] = "English"
 
   app.info_plist['ComponentInputModeDict'] = {
     'tsInputModeListKey' => {
