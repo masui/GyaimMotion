@@ -12,9 +12,9 @@ end
 
 Motion::Project::App.setup do |app|
   # Use `rake config' to see complete project settings.
-  app.name = 'GyaimMotion'
+  app.name = 'Gyaim'
   app.icon = 'Gyaim.png'
-  app.identifier = "com.pitecan.inputmethod.GyaimMotion"
+  app.identifier = "com.pitecan.inputmethod.Gyaim"
   app.frameworks << 'InputMethodKit'
 
   # 順番がある場合 foo の方が先、とか

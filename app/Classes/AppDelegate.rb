@@ -16,7 +16,7 @@ class AppDelegate
     
     @candWindowController = CandWindowController.alloc.initWithWindowNibName('MainMenu')
     puts @candWindowController.class
-    @candWindowController.window.makeKeyAndOrderFront(self)
+    # @candWindowController.window.makeKeyAndOrderFront(self)
 
     #
     # IMKServerに接続
