@@ -6,12 +6,19 @@
 # Copyright 2015 Pitecan Systems. All rights reserved.
 
 class AppDelegate
-  def init
-    @candWindowController = CandWindow.alloc.initWithWindowNibName('MainMenu')
-    @candWindowController.window.makeKeyAndOrderFront(self)
-  #  @gyaimController = GyaimController.alloc.initWithWindowNibName('MainMenu')
-  #  @gyaimController.window.makeKeyAndOrderFront(self)
-  end
+  #def init
+  #  puts "AppDelegate start"
+  #end
+
+  @candWindowController = CandWindowController.alloc.initWithWindowNibName('MainMenu')
+  puts @candWindowController.class
+  # @candWindowController.window.makeKeyAndOrderFront(self)
+  
+  #
+  # IMKServerに接続
+  #
+  identifier = NSBundle.mainBundle.bundleIdentifier
+  server = IMKServer.alloc.initWithName("Gyaim_Connection",bundleIdentifier:identifier)
     
   def applicationDidFinishLaunching(notification)
     # puts Crypt.encrypt("xxxxx")

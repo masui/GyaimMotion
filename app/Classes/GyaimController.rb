@@ -20,11 +20,11 @@
 # require 'Crypt'
 
 class GyaimController < IMKInputController
-  extend IB
+  #extend IB
 
-  outlet :candwin, CandWindow
-  outlet :candview, CandView
-  outlet :textview, NSTextView
+  #outlet :candwin, CandWindow
+  #outlet :candview, CandView
+  #outlet :textview, NSTextView
   
   attr_accessor :candwin
   attr_accessor :candview
