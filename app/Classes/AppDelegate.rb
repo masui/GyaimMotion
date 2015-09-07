@@ -6,6 +6,13 @@
 # Copyright 2015 Pitecan Systems. All rights reserved.
 
 class AppDelegate
+  def init
+    @candWindowController = CandWindow.alloc.initWithWindowNibName('MainMenu')
+    @candWindowController.window.makeKeyAndOrderFront(self)
+  #  @gyaimController = GyaimController.alloc.initWithWindowNibName('MainMenu')
+  #  @gyaimController.window.makeKeyAndOrderFront(self)
+  end
+    
   def applicationDidFinishLaunching(notification)
     # puts Crypt.encrypt("xxxxx")
     puts "App start"

@@ -5,3 +5,4 @@ gem 'rake'
 
 gem 'json'
 gem 'digest'
+gem 'ib'

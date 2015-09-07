@@ -6,6 +6,7 @@
 # Copyright 2011 Pitecan Systems. All rights reserved.
 
 class CandWindow < NSWindow
+  
   def initWithContentRect(contentRect,styleMask:aStyle,backing:bufferingType,defer:d)
     # superにはキーワード引数が使えないらしく、以下のように書くことができない
     # super(contentRect,styleMask:NSBorderlessWindowMask,backing:NSBackingStoreBuffered,defer:false)
