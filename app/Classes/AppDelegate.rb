@@ -3,12 +3,10 @@
 # GyaimMotion
 #
 # Created by Toshiyuki Masui on 2015/9/7
-# Copyright 2015 Pitecan Systems. All rights reserved.
-
+# Copyright (C) 2015 Pitecan Systems. All rights reserved.
+#
 class AppDelegate
   def applicationDidFinishLaunching(notification)
-    puts "AppDidFinishLaunching"
-
     #
     # IMKServerに接続
     #

@@ -1,18 +1,12 @@
 # -*- coding: utf-8 -*-
 #
-# WordSearch.rb
-# Gyaim
-#
 # Created by Toshiyuki Masui on 2011/3/15.
-# Copyright 2011 Pitecan Systems. All rights reserved.
-
-# require 'Crypt'
-# require 'ConnectionDict'
-# require 'PNG'
-
-# require 'net/http'
-# require 'json'
-# require 'digest/md5'
+# Modified by Toshiyuki Masui on 2015/9/8.
+#
+# Google APIを使えるようにすること!
+#
+# Copyright 2011-2015 Pitecan Systems. All rights reserved.
+#
 
 class WordSearch
   attr :searchmode, true

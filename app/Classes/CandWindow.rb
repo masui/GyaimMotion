@@ -1,10 +1,10 @@
 # -*- coding: utf-8 -*-
-# CandWindow.rb
-# Gyaim
 #
 # Created by Toshiyuki Masui on 2011/3/15.
-# Copyright 2011 Pitecan Systems. All rights reserved.
-
+# Modified by Toshiyuki Masui on 2015/9/8.
+#
+# Copyright (C) 2011-2015 Pitecan Systems. All rights reserved.
+#
 class CandWindow < NSWindow
 
   @@candWindow = nil
@@ -36,8 +36,6 @@ class CandWindow < NSWindow
   # ウィンドウ枠をドラッグ可能にするためにmouseDownとmouseDraggedを定義
   #
   def mouseDragged(event)
-    # puts "CandWindow:mouseDragged self=#{self}"
-
     screenFrame = NSScreen.mainScreen.frame
     windowFrame = self.frame
 
@@ -65,6 +63,5 @@ class CandWindow < NSWindow
     @initialLocation.x -= windowFrame.origin.x;
     @initialLocation.y -= windowFrame.origin.y;
   end
-
 end
 

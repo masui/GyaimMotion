@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
-
-# require 'openssl'
+#
+# OpenSSL gem を使ってたのだがRubyMotionでは使えないので他の方法を検討する
+#
 
 class Crypt
   #
