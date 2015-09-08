@@ -6,16 +6,6 @@
 # Copyright 2015 Pitecan Systems. All rights reserved.
 
 class AppDelegate
-  #def init
-  #  puts "AppDelegate start"
-  #end
-
-  extend IB
-  
-  outlet :candwin, CandWindow
-  outlet :candview, CandView
-  outlet :textview, CandTextView
-  
   def applicationDidFinishLaunching(notification)
     puts "AppDidFinishLaunching"
 
@@ -25,11 +15,6 @@ class AppDelegate
     identifier = NSBundle.mainBundle.bundleIdentifier
     server = IMKServer.alloc.initWithName("Gyaim_Connection",bundleIdentifier:identifier)
   end
-
-  attr_accessor :candwin
-  attr_accessor :candview
-  attr_accessor :textview
-  attr_accessor :inputcontroller
 end
     
 

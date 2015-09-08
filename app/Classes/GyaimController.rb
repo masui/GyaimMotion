@@ -4,26 +4,16 @@
 # Gyaim
 #
 # Created by Toshiyuki Masui on 2011/3/14.
-# Copyright 2011 Pitecan Systems. All rights reserved.
+# Modified by Toshiyuki Masui on 2015/9.
+# Copyright 2011-15 Pitecan Systems. All rights reserved.
 #
 
-# require 'rubygems'
 # http://ferrous26.com/blog/2012/04/03/axelements-part1/
 
 # require 'accessibility/string'
 # include Accessibility::String
 
 class GyaimController < IMKInputController
-  extend IB
-
-  outlet :candwin, CandWindow
-  outlet :candview, CandView
-  outlet :textview, CandTextView
-  
-  #attr_accessor :candwin
-  #attr_accessor :candview
-  #attr_accessor :textview
-
   @@ws = nil
 
   def imageDir
