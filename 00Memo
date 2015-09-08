@@ -7,3 +7,8 @@ NIBとソースの結合方法が不明なので
 
 % rake ib で ib.xcodeprojができる
   resources/MainMenu.xib はセーブすること
+
+クラスのコンパイルに順番がある場合は以下を参考に
+  # 順番がある場合 foo の方が先、とか
+  # http://www.rubymotion.com/developers/guides/manuals/cocoa/project-management/
+  

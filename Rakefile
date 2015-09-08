@@ -1,30 +1,27 @@
 # -*- coding: utf-8 -*-
+#
+#  % rake config で細かい設定がわかる
+#
 $:.unshift("/Library/RubyMotion/lib")
 require 'motion/project/template/osx'
 
 begin
   require 'bundler'
-  require 'ib' ## 要らない???
-  
   Bundler.require
-
 rescue LoadError
 end
 
 Motion::Project::App.setup do |app|
-  # Use `rake config' to see complete project settings.
+  #
+  # Info.plistの設定が肝心なので以下のように細かく設定する。
+  #
   app.name = 'Gyaim'
   app.icon = 'Gyaim.png'
   app.identifier = "com.pitecan.inputmethod.Gyaim"
   app.frameworks << 'InputMethodKit'
-
-  # 順番がある場合 foo の方が先、とか
-  # http://www.rubymotion.com/developers/guides/manuals/cocoa/project-management/
-
-  #app.info_plist['CFBundleURLTypes'] = [
-  #  { 'CFBundleURLName' => 'com.mycompany.x-videoplayer',
-  #    'CFBundleURLSchemes' => ['x-videoplayer'] }
-  #]
+  #
+  # RubyMotionの機能で設定しきれないものは直接指定
+  #
   app.info_plist['tsInputMethodCharacterRepertoireKey'] = [
     "Hira", "Latn"
   ]
