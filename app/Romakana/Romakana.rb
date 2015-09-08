@@ -13,10 +13,6 @@
 #  rk.hiragana2roma('じしょ') ⇒ ['jisho', 'jisyo', 'zisho', 'zisyo']
 #
 
-File.open("/tmp/log","a"){ |f|
-  f.puts "Romakana start"
-}
-
 # Ruby1.9にはString#eachが存在しないので
 class String
   def each
@@ -455,9 +451,3 @@ class String
     @@rk.katakana2roma(self)[0].to_s
   end
 end
-
-
-File.open("/tmp/log","a"){ |f|
-  f.puts "Romakana end"
-}
-

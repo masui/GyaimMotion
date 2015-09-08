@@ -13,10 +13,6 @@
 # require 'accessibility/string'
 # include Accessibility::String
 
-File.open("/tmp/log","a"){ |f|
-  f.puts "GyaimController start"
-}
-
 class GyaimController < IMKInputController
   extend IB
 
@@ -39,38 +35,12 @@ class GyaimController < IMKInputController
   end
 
   def initWithServer(server, delegate:d, client:c)
-    #File.open("/tmp/loglog","w"){ |f|
-    #  f.puts "initWithServer===============@@ws = #{@@ws}"
-    #  f.puts "initWithServer delegate=#{d}, client="#{c}"
-    #}
-    # STDERR.puts "initWithServer===============@@ws = #{@@ws}"
-    # Log.log "initWithServer delegate=#{d}, client="#{c}"
     @client = c   # Lexierraではこれをnilにしてた。何故?
 
-    # これが何故必要なのか不明
-    File.open("/tmp/log","a"){ |f|
-      f.puts "NSApp = #{NSApp}"
-    }
-    File.open("/tmp/log","a"){ |f|
-      f.puts "delegate = #{NSApp.delegate}"
-    }
-    #@candwin = NSApp.delegate.candwin
-    #@textview = NSApp.delegate.textview
-    #File.open("/tmp/log","a"){ |f|
-    #  f.puts "delegate.candwin = #{NSApp.delegate.candwin}"
-    #  f.puts "delegate.textview = #{NSApp.delegate.textview}"
-    #}
     @textview = CandTextView.candTextView
-    File.open("/tmp/log","a"){ |f|
-      f.puts "candwin = #{@candwin}"
-      f.puts "textview = #{@textview}"
-    }
 
     # 辞書サーチ
     dictpath = NSBundle.mainBundle.pathForResource("dict", ofType:"txt")
-    File.open("/tmp/log","a"){ |f|
-      f.puts "initWithServer dictpath = #{dictpath}"
-    }
     if @@ws.nil? then
       @@ws = WordSearch.new(dictpath)
     end
@@ -397,9 +367,6 @@ class GyaimController < IMKInputController
     #
     # 候補単語リストを表示
     #
-    File.open("/tmp/log","a"){ |f|
-      f.puts "showCands: @textview = #{@textview}"
-    }
     # @textview.setString(@cands[@nthCand+1 .. @nthCand+1+10].join(' '))
     @textview.setString('')
     (0..10).each { |i|
@@ -455,7 +422,3 @@ class GyaimController < IMKInputController
     NSApp.hide(self)
   end
 end
-
-File.open("/tmp/log","a"){ |f|
-  f.puts "GyaimController end"
-}

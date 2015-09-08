@@ -14,10 +14,6 @@
 # require 'json'
 # require 'digest/md5'
 
-File.open("/tmp/log","a"){ |f|
-  f.puts "WordSearch start"
-}
-
 class WordSearch
   attr :searchmode, true
 
@@ -279,9 +275,6 @@ class WordSearch
   end
 
   def loadDict(dictfile)
-    File.open("/tmp/log","a"){ |f|
-      f.puts "loadDict: dictfile = #{dictfile}"
-    }
     dict = []
     if File.exist?(dictfile) then
       File.open(dictfile){ |f|
@@ -337,7 +330,3 @@ if __FILE__ == $0 && nil then
   ws.search("kanj")
   puts ws.candidates
 end
-
-File.open("/tmp/log","a"){ |f|
-  f.puts "WordSearch end"
-}

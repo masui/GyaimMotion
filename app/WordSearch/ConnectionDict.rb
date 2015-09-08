@@ -19,9 +19,6 @@ end
   
 class ConnectionDict
   def initialize(dict)
-    File.open("/tmp/log","a"){ |f|
-      f.puts "ConnectoinDict:init dict = #{dict}"
-    }
     @dict = []
     @keyLink = []
     @connectionLink = []
@@ -30,9 +27,6 @@ class ConnectionDict
   end
 
   def readDict(dict)
-    File.open("/tmp/log","a"){ |f|
-      f.puts "readDict: dict = #{dict}"
-    }
     File.open(dict){ |f|
       f.each { |line|
         line.chomp!

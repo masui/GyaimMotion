@@ -5,10 +5,6 @@
 # Created by Toshiyuki Masui on 2011/3/15.
 # Copyright 2011 Pitecan Systems. All rights reserved.
 
-File.open("/tmp/log","a"){ |f|
-  f.puts "CandWindow start"
-}
-
 class CandWindow < NSWindow
   
   def initWithContentRect(contentRect,styleMask:aStyle,backing:bufferingType,defer:d)
@@ -60,8 +56,4 @@ class CandWindow < NSWindow
   end
 
 end
-
-File.open("/tmp/log","a"){ |f|
-  f.puts "CandWindow end"
-}
 
