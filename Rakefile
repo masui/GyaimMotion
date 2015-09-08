@@ -20,9 +20,6 @@ Motion::Project::App.setup do |app|
 
   # 順番がある場合 foo の方が先、とか
   # http://www.rubymotion.com/developers/guides/manuals/cocoa/project-management/
-  app.files_dependencies 'app/Classes/AppDelegate.rb' => 'app/Classes/CandWindowController.rb'
-  app.files_dependencies 'app/Classes/CandWindowController.rb' => 'app/Classes/CandWindow.rb'
-  app.files_dependencies 'app/Classes/CandWindowController.rb' => 'app/Classes/CandView.rb'
 
   #app.info_plist['CFBundleURLTypes'] = [
   #  { 'CFBundleURLName' => 'com.mycompany.x-videoplayer',
