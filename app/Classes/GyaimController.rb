@@ -13,16 +13,20 @@
 # require 'accessibility/string'
 # include Accessibility::String
 
-class GyaimController < IMKInputController
-  #extend IB
+File.open("/tmp/log","a"){ |f|
+  f.puts "GyaimController start"
+}
 
-  #outlet :candwin, CandWindow
-  #outlet :candview, CandView
-  #outlet :textview, NSTextView
+class GyaimController < IMKInputController
+  extend IB
+
+  outlet :candwin, CandWindow
+  outlet :candview, CandView
+  outlet :textview, CandTextView
   
-  attr_accessor :candwin
-  attr_accessor :candview
-  attr_accessor :textview
+  #attr_accessor :candwin
+  #attr_accessor :candview
+  #attr_accessor :textview
 
   @@ws = nil
 
@@ -44,11 +48,29 @@ class GyaimController < IMKInputController
     @client = c   # Lexierraではこれをnilにしてた。何故?
 
     # これが何故必要なのか不明
-    @candwin = NSApp.delegate.candwin
-    @textview = NSApp.delegate.textview
+    File.open("/tmp/log","a"){ |f|
+      f.puts "NSApp = #{NSApp}"
+    }
+    File.open("/tmp/log","a"){ |f|
+      f.puts "delegate = #{NSApp.delegate}"
+    }
+    #@candwin = NSApp.delegate.candwin
+    #@textview = NSApp.delegate.textview
+    #File.open("/tmp/log","a"){ |f|
+    #  f.puts "delegate.candwin = #{NSApp.delegate.candwin}"
+    #  f.puts "delegate.textview = #{NSApp.delegate.textview}"
+    #}
+    @textview = CandTextView.candTextView
+    File.open("/tmp/log","a"){ |f|
+      f.puts "candwin = #{@candwin}"
+      f.puts "textview = #{@textview}"
+    }
 
     # 辞書サーチ
     dictpath = NSBundle.mainBundle.pathForResource("dict", ofType:"txt")
+    File.open("/tmp/log","a"){ |f|
+      f.puts "initWithServer dictpath = #{dictpath}"
+    }
     if @@ws.nil? then
       @@ws = WordSearch.new(dictpath)
     end
@@ -375,6 +397,9 @@ class GyaimController < IMKInputController
     #
     # 候補単語リストを表示
     #
+    File.open("/tmp/log","a"){ |f|
+      f.puts "showCands: @textview = #{@textview}"
+    }
     # @textview.setString(@cands[@nthCand+1 .. @nthCand+1+10].join(' '))
     @textview.setString('')
     (0..10).each { |i|
@@ -422,7 +447,7 @@ class GyaimController < IMKInputController
     origin = lineRect.origin
     origin.x -= 15;
     origin.y -= 125;
-    @candwin.setFrameOrigin(origin)
+    # @candwin.setFrameOrigin(origin) if @candwin != nil
     NSApp.unhide(self)
   end
 
@@ -430,3 +455,7 @@ class GyaimController < IMKInputController
     NSApp.hide(self)
   end
 end
+
+File.open("/tmp/log","a"){ |f|
+  f.puts "GyaimController end"
+}

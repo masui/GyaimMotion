@@ -3,6 +3,10 @@
 
 # require "zlib"
 
+File.open("/tmp/log","a"){ |f|
+  f.puts "PNG start"
+}
+
 class PNG
   def PNG.chunk(type, data)
     [data.bytesize, type, data, Zlib.crc32(type + data)].pack("NA4A*N")
@@ -20,7 +24,7 @@ class PNG
   end
 end
 
-if __FILE__ == $0 then
+if __FILE__ == $0 && false then
   width, height = 20, 20
   raw_data = [[[255,255,0]] * width] * height
   pngdata = PNG.png(raw_data)
@@ -37,5 +41,8 @@ if __FILE__ == $0 then
   print pngdata
 end
 
+File.open("/tmp/log","a"){ |f|
+  f.puts "PNG end"
+}
 
 

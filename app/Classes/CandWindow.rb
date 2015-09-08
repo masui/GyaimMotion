@@ -5,6 +5,10 @@
 # Created by Toshiyuki Masui on 2011/3/15.
 # Copyright 2011 Pitecan Systems. All rights reserved.
 
+File.open("/tmp/log","a"){ |f|
+  f.puts "CandWindow start"
+}
+
 class CandWindow < NSWindow
   
   def initWithContentRect(contentRect,styleMask:aStyle,backing:bufferingType,defer:d)
@@ -19,12 +23,19 @@ class CandWindow < NSWindow
       setCanHide(true)
       self
     end
+    # @@candWindow = self
   end
+
+  #def CandWindow.candWindow
+  #  @@candWindow
+  #end
 
   #
   # ウィンドウ枠をドラッグ可能にするためにmouseDownとmouseDraggedを定義
   #
   def mouseDragged(event)
+    # puts "CandWindow:mouseDragged self=#{self}"
+
     screenFrame = NSScreen.mainScreen.frame
     windowFrame = self.frame
 
@@ -54,3 +65,8 @@ class CandWindow < NSWindow
   end
 
 end
+
+File.open("/tmp/log","a"){ |f|
+  f.puts "CandWindow end"
+}
+

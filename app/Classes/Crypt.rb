@@ -2,6 +2,10 @@
 
 # require 'openssl'
 
+File.open("/tmp/log","a"){ |f|
+  f.puts "Crypt start"
+}
+
 class Crypt
   #
   # 単語の暗号化登録のために利用する暗号化/複号化ライブラリ
@@ -31,4 +35,8 @@ class Crypt
     false
   end
 end
+
+File.open("/tmp/log","a"){ |f|
+  f.puts "Crypt end"
+}
 
