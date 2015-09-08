@@ -1,3 +1,9 @@
 appの下のものが勝手にコンパイルされる
 
 requireは使えないからGemfileに書く
+
+NIBとソースの結合方法が不明なので
+  awakeFromNibでオブジェクトを取得するようにしている
+
+% rake ib で ib.xcodeprojができる
+  resources/MainMenu.xib はセーブすること

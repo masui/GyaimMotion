@@ -1,0 +1,3 @@
+# GyaimMotion - RubyMotionで作ったMacのIME
+
+MacRubyベースのGyaimがYosemiteで動かないのでRubyMotionに変更した。まだまだまともに動いていないが、RubyMotionでIMEを作れることがわかったのでとりあえず公開している。
