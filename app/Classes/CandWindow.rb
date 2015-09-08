@@ -6,6 +6,17 @@
 # Copyright 2011 Pitecan Systems. All rights reserved.
 
 class CandWindow < NSWindow
+
+  @@candWindow = nil
+  
+  def awakeFromNib
+    super
+    @@candWindow = self
+  end
+  
+  def CandWindow.candWindow
+    @@candWindow
+  end
   
   def initWithContentRect(contentRect,styleMask:aStyle,backing:bufferingType,defer:d)
     # superにはキーワード引数が使えないらしく、以下のように書くことができない

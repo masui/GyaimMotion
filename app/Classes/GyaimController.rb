@@ -28,6 +28,7 @@ class GyaimController < IMKInputController
     @client = c   # Lexierraではこれをnilにしてた。何故?
 
     @textview = CandTextView.candTextView
+    @candwin = CandWindow.candWindow
 
     # 辞書サーチ
     dictpath = NSBundle.mainBundle.pathForResource("dict", ofType:"txt")
@@ -404,7 +405,7 @@ class GyaimController < IMKInputController
     origin = lineRect.origin
     origin.x -= 15;
     origin.y -= 125;
-    # @candwin.setFrameOrigin(origin) if @candwin != nil
+    @candwin.setFrameOrigin(origin) if @candwin != nil
     NSApp.unhide(self)
   end
 
