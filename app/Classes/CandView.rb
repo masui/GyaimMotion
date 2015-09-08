@@ -9,15 +9,6 @@ File.open("/tmp/log","a"){ |f|
 }
 
 class CandView < NSView
-  #def initWithFrame(NSRect:frame)
-  #  super frame
-  #  @@candView = self
-  #end
-  #
-  #def CandView.candView
-  #  @@candView
-  #end
-  
   def drawRect(rect)
     mainBundle = NSBundle.mainBundle
     # puts "mainBundle=#{mainBundle}"

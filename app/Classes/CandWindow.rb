@@ -23,12 +23,7 @@ class CandWindow < NSWindow
       setCanHide(true)
       self
     end
-    # @@candWindow = self
   end
-
-  #def CandWindow.candWindow
-  #  @@candWindow
-  #end
 
   #
   # ウィンドウ枠をドラッグ可能にするためにmouseDownとmouseDraggedを定義

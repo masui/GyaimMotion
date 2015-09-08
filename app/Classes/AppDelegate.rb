@@ -21,16 +21,6 @@ class AppDelegate
   outlet :textview, CandTextView
   
   def applicationDidFinishLaunching(notification)
-    CandWindowController.test
-    
-    @candWindowController = CandWindowController.alloc.initWithWindowNibName('xMainMenuuuuuuuu')
-    puts @candWindowController.class
-    # @candWindowController.window.makeKeyAndOrderFront(self)
-    
-    # puts Crypt.encrypt("xxxxx")
-    File.open("/tmp/log","a"){ |f|
-      f.puts "AppDidFinishLaunching: textview = #{CandTextView.candTextView}"
-    }
     puts "AppDidFinishLaunching"
 
     #
