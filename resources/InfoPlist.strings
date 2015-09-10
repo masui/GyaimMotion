@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>CFBundleDisplayName</key>
+	<string>GyaimInput</string>
+	<key>CFBundleGetInfoString</key>
+	<string>Gyaim version 1.0, Copyright 2015, Pitecan Systems.</string>
+	<key>CFBundleName</key>
+	<string>Gyaim</string>
+	<key>CFBundleShortVersionString</key>
+	<string>GyaimInput version 1.0</string>
+	<key>NSHumanReadableCopyright</key>
+	<string>© Pitecan Systems, 2015</string>
+	<key>com.apple.inputmethod.Japanese</key>
+	<string>Gyaim</string>
+</dict>
+</plist>
