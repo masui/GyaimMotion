@@ -147,6 +147,11 @@
 					<string>NO</string>
 				</dict>
 			</dict>
+			<key>Text</key>
+			<dict>
+				<key>Pad</key>
+				<integer>3</integer>
+			</dict>
 		</dict>
 	</array>
 	<key>GridInfo</key>
@@ -196,7 +201,7 @@
 	<key>MasterSheets</key>
 	<array/>
 	<key>ModificationDate</key>
-	<string>2015-09-10 07:42:02 +0000</string>
+	<string>2015-09-10 07:53:08 +0000</string>
 	<key>Modifier</key>
 	<string>Toshiyuki Masui</string>
 	<key>NotesVisible</key>
@@ -272,7 +277,7 @@
 		<key>ExpandedCanvases</key>
 		<array/>
 		<key>Frame</key>
-		<string>{{215, 0}, {694, 777}}</string>
+		<string>{{213, 0}, {694, 777}}</string>
 		<key>ListView</key>
 		<true/>
 		<key>OutlineWidth</key>
@@ -286,7 +291,7 @@
 		<key>SidebarWidth</key>
 		<integer>120</integer>
 		<key>VisibleRegion</key>
-		<string>{{57.5, 37.75}, {139.75, 158.75}}</string>
+		<string>{{57.25, 35.5}, {139.75, 158.75}}</string>
 		<key>Zoom</key>
 		<real>4</real>
 		<key>ZoomValues</key>
