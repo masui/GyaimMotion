@@ -1,14 +1,24 @@
-appの下のものが勝手にコンパイルされる
+■ RubyMotion
 
-requireは使えないからGemfileに書く
+  appの下のものが勝手にコンパイルされる
+  requireは使えないからGemfileに書く
 
-NIBとソースの結合方法が不明なので
-  awakeFromNibでオブジェクトを取得するようにしている
+  NIBとソースの結合方法が不明なので
+    awakeFromNibでオブジェクトを取得するようにしている
 
-% rake ib で ib.xcodeprojができる
-  resources/MainMenu.xib はセーブすること
+  % rake ib で ib.xcodeprojができる
+    resources/MainMenu.xib はセーブすること
 
-クラスのコンパイルに順番がある場合は以下を参考に
-  # 順番がある場合 foo の方が先、とか
-  # http://www.rubymotion.com/developers/guides/manuals/cocoa/project-management/
-  
+  クラスのコンパイルに順番がある場合は以下を参考に
+    # 順番がある場合 foo の方が先、とか
+    # http://www.rubymotion.com/developers/guides/manuals/cocoa/project-management/
+
+■ IMEの作り方
+
+メニューバーに表示するアイコン
+  * 20px × 20px のPDFにするとRetinaでも綺麗に見える
+
+入力システム名
+  InfoPlist.strings に書く
+    Info.plistには書かない
+    
