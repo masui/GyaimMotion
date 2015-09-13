@@ -1,4 +1,6 @@
 .repl_history
+ib.xcodeproj/
+Gemfile.lock
 build
 tags
 app/pixate_code.rb
