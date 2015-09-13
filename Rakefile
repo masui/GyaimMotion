@@ -5,7 +5,7 @@
 $:.unshift("/Library/RubyMotion/lib")
 require 'motion/project/template/osx'
 
-# require 'bubble-wrap'
+require 'rm-digest'
 
 begin
   require 'bundler'
