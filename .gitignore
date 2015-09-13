@@ -7,6 +7,7 @@ app/pixate_code.rb
 resources/*.nib
 resources/*.momd
 resources/*.storyboardc
+vendor/
 .DS_Store
 nbproject
 .redcar
