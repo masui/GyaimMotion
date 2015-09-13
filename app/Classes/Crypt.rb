@@ -12,7 +12,7 @@ class Crypt
     if __FILE__ == $0 then
       Digest::MD5.hexdigest(str)      # 通常のRuby
     else
-      RmDigest::SHA1.hexdigest('foo') # RubyMotion
+      RmDigest::SHA1.hexdigest(str) # RubyMotion
     end
   end
 
