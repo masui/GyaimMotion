@@ -1,3 +1,4 @@
+# coding: utf-8
 source 'https://rubygems.org'
 
 gem 'rake'
@@ -5,4 +6,6 @@ gem 'rake'
 
 gem 'json'
 gem 'digest'
-gem "afmotion"
+
+gem "afmotion" # これを入れると rake pod:install で vendor/ ができる
+

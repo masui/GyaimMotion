@@ -4,7 +4,8 @@
 #
 $:.unshift("/Library/RubyMotion/lib")
 require 'motion/project/template/osx'
-require 'bubble-wrap'
+
+# require 'bubble-wrap'
 
 begin
   require 'bundler'
