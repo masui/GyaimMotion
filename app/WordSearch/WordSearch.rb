@@ -138,23 +138,6 @@ class WordSearch
         }
         GyaimController.showCands # AFMotionが非同期なのでここで更新!
       end
-        
-      #BW::HTTP.start('google.com', 80) {|http|
-      #  response = http.get("/transliterate?langpair=ja-Hira|ja&text=#{q.roma2hiragana}")
-      #  File.open("/tmp/log","a"){ |f|
-      #    f.puts "response=#{response}"
-      #  }
-      #  BubbleWrap::JSON.parse(response.body)[0][1].each { |candword|
-      #    File.open("/tmp/log","a"){ |f|
-      #      f.puts candword
-      #    }
-      #    # JSON.parse(response.body)[0]['hws'].each { |candword| # 何故か一時的にこういう仕様になってたが戻った (2013/01/18)
-      #    if !candfound[candword] then
-      #      candfound[candword] = 1
-      #      @candidates << candword
-      #    end
-      #  }
-      #}
     elsif q =~ /^(.*)\#$/ then
       #
       # 色指定

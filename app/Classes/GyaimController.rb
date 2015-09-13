@@ -14,7 +14,7 @@
 # include Accessibility::String
 
 class GyaimController < IMKInputController
-  @@ws = nil
+  #@ws = nil
   @@gc = nil
 
   def imageDir
@@ -33,8 +33,8 @@ class GyaimController < IMKInputController
 
     # 辞書サーチ
     dictpath = NSBundle.mainBundle.pathForResource("dict", ofType:"txt")
-    if @@ws.nil? then
-      @@ws = WordSearch.new(dictpath)
+    if @ws.nil? then
+      @ws = WordSearch.new(dictpath)
     end
 
     resetState
@@ -48,7 +48,7 @@ class GyaimController < IMKInputController
   # 入力システムがアクティブになると呼ばれる
   #
   def activateServer(sender)
-    @@ws.start
+    @ws.start
     showWindow
   end
 
@@ -58,14 +58,14 @@ class GyaimController < IMKInputController
   def deactivateServer(sender)
     hideWindow
     fix
-    @@ws.finish
+    @ws.finish
   end
 
   def resetState
     @inputPat = ""
     @candidates = []
     @nthCand = 0
-    @@ws.searchmode = 0
+    @ws.searchmode = 0
     @selectedstr = nil
   end
 
@@ -177,11 +177,11 @@ class GyaimController < IMKInputController
           # KeyCoder.post_event [51,false]  # BS
           return true
         end
-        if @@ws.searchmode > 0 then
+        if @ws.searchmode > 0 then
           fix
         else
           if @nthCand == 0 then
-            @@ws.searchmode = 1
+            @ws.searchmode = 1
             searchAndShowCands
           else
             fix
@@ -190,10 +190,10 @@ class GyaimController < IMKInputController
         handled = true
       end
     elsif c >= 0x21 && c <= 0x7e && (modifierFlags & (NSControlKeyMask|NSCommandKeyMask|NSAlternateKeyMask)) == 0 then
-      fix if @nthCand > 0 || @@ws.searchmode > 0
+      fix if @nthCand > 0 || @ws.searchmode > 0
       @inputPat += eventString
       searchAndShowCands
-      @@ws.searchmode = 0
+      @ws.searchmode = 0
       handled = true
     end
 
@@ -216,12 +216,12 @@ class GyaimController < IMKInputController
     #
     # WordSearch#search で検索して WordSearch#candidates で受け取る
     #
-    # @@ws.searchmode == 0 前方マッチ
-    # @@ws.searchmode == 1 完全マッチ ひらがな/カタカナも候補に加える
+    # @ws.searchmode == 0 前方マッチ
+    # @ws.searchmode == 1 完全マッチ ひらがな/カタカナも候補に加える
     #
-    if @@ws.searchmode > 0 then
-      @@ws.search(@inputPat)
-      @candidates = @@ws.candidates
+    if @ws.searchmode > 0 then
+      @ws.search(@inputPat)
+      @candidates = @ws.candidates
       katakana = @inputPat.roma2katakana
       if katakana != "" then
         @candidates = delete(@candidates,katakana)
@@ -233,8 +233,8 @@ class GyaimController < IMKInputController
         @candidates.unshift(hiragana)
       end
     else
-      @@ws.search(@inputPat)
-      @candidates = @@ws.candidates
+      @ws.search(@inputPat)
+      @candidates = @ws.candidates
       @candidates.unshift(@selectedstr) if @selectedstr && @selectedstr != ''
       @candidates.unshift(@inputPat)
       if @candidates.length < 8 then
@@ -275,21 +275,21 @@ class GyaimController < IMKInputController
 
       if word == @selectedstr then
         if @inputPat =~ /^(.*)\?$/ then # 暗号化単語登録
-          @@ws.register(Crypt.encrypt(word,$1).to_s,'?')
+          @ws.register(Crypt.encrypt(word,$1).to_s,'?')
         else
-          @@ws.register(word,@inputPat)
+          @ws.register(word,@inputPat)
         end
         @selectedstr = nil
       else
         c = @candidates[@nthCand]
         if c.class == Array then
           if c[1] != 'ds' && c[1] != '?' then
-            @@ws.study(c[0],c[1])
+            @ws.study(c[0],c[1])
           end
         else
           # 読みが未登録 = ユーザ辞書に登録されていない
           if @inputPat != 'ds' && @inputPat != '?' then
-            @@ws.study(word,@inputPat)
+            @ws.study(word,@inputPat)
           end
         end
       end
