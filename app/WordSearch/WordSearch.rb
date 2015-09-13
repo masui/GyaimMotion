@@ -67,7 +67,7 @@ class WordSearch
     command = "/ajax/services/search/images?q=#{q}&v=1.0&rsz=large&start=1"
     Net::HTTP.start(server, 80) {|http|
       response = http.get(command)
-      json = JSON.parse(response.body)
+      json = BubbleWrap::JSON.parse(response.body)
       images = json['responseData']['results']
       images.each { |image|
         url = image['url']
@@ -112,8 +112,6 @@ class WordSearch
 
     if q.length > 1 && q.sub!(/\.$/,'') then
       # パタンの最後にピリオドが入力されたらGoogle Suggestを検索
-      require 'net/http'
-      require 'nkf'
       registered = {}
       words = []
 
@@ -131,18 +129,32 @@ class WordSearch
       #  end
       #}
 
-      require 'json'
-
-      Net::HTTP.start('google.com', 80) {|http|
-        response = http.get("/transliterate?langpair=ja-Hira|ja&text=#{q.roma2hiragana}")
-        JSON.parse(response.body)[0][1].each { |candword|
-        # JSON.parse(response.body)[0]['hws'].each { |candword| # 何故か一時的にこういう仕様になってたが戻った (2013/01/18)
+      AFMotion::JSON.get("http://google.com/transliterate", {langpair: "ja-Hira|ja", text: q.roma2hiragana}) do |result|
+        result.object[0][1].each { |candword|
           if !candfound[candword] then
             candfound[candword] = 1
             @candidates << candword
           end
         }
-      }
+        GyaimController.showCands # AFMotionが非同期なのでここで更新!
+      end
+        
+      #BW::HTTP.start('google.com', 80) {|http|
+      #  response = http.get("/transliterate?langpair=ja-Hira|ja&text=#{q.roma2hiragana}")
+      #  File.open("/tmp/log","a"){ |f|
+      #    f.puts "response=#{response}"
+      #  }
+      #  BubbleWrap::JSON.parse(response.body)[0][1].each { |candword|
+      #    File.open("/tmp/log","a"){ |f|
+      #      f.puts candword
+      #    }
+      #    # JSON.parse(response.body)[0]['hws'].each { |candword| # 何故か一時的にこういう仕様になってたが戻った (2013/01/18)
+      #    if !candfound[candword] then
+      #      candfound[candword] = 1
+      #      @candidates << candword
+      #    end
+      #  }
+      #}
     elsif q =~ /^(.*)\#$/ then
       #
       # 色指定

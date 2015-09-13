@@ -15,6 +15,7 @@
 
 class GyaimController < IMKInputController
   @@ws = nil
+  @@gc = nil
 
   def imageDir
     File.expand_path("~/.gyaimdict/images")
@@ -39,7 +40,7 @@ class GyaimController < IMKInputController
     resetState
 
     if super then
-      self
+      @@gc = self
     end
   end
 
@@ -411,5 +412,9 @@ class GyaimController < IMKInputController
 
   def hideWindow
     NSApp.hide(self)
+  end
+
+  def GyaimController.showCands
+    @@gc.showCands
   end
 end
