@@ -20,6 +20,7 @@ Motion::Project::App.setup do |app|
   app.icon = 'Gyaim.png'
   app.identifier = "com.pitecan.inputmethod.Gyaim"
   app.frameworks << 'InputMethodKit'
+  app.frameworks << 'Security'
   #
   # RubyMotionの機能で設定しきれないものは直接指定
   #
