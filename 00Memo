@@ -13,6 +13,9 @@
     # 順番がある場合 foo の方が先、とか
     # http://www.rubymotion.com/developers/guides/manuals/cocoa/project-management/
 
+  暗号化
+    "rm-digest" https://coderwall.com/p/-nohpg/easy-md5-sha1-hashes-in-rubymotion
+
 ■ IMEの作り方
 
 メニューバーに表示するアイコン
