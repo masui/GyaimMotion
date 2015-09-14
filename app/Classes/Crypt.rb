@@ -3,13 +3,16 @@
 # OpenSSL gem を使ってたのだがRubyMotionでは使えないので他の方法を使う
 #
 
-if __FILE__ == $0 then
-  require 'digest/md5'
-end
-
 class Crypt
+  @@ruby = 'CRuby'
+  begin
+    require 'digest/md5'
+  rescue
+    @@ruby = 'RubyMotion'
+  end
+
   def Crypt.digest(str)
-    if __FILE__ == $0 then
+    if @@ruby == 'CRuby'
       Digest::MD5.hexdigest(str)      # 通常のRuby
     else
       RmDigest::SHA1.hexdigest(str) # RubyMotion
