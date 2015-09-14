@@ -169,6 +169,16 @@ class GyaimController < IMKInputController
         handled = true
       end
     elsif c == 0x0a || c == 0x0d then
+      File.open("/tmp/log","a"){ |f|
+        f.puts "cconverting = #{converting}"
+      }
+      File.open("/tmp/log","a"){ |f|
+        begin
+          f.puts "@ws = #{@ws}"
+        rescue
+          f.puts "@ws = nil"
+        end
+      }
       if converting then
         if @tmp_image_displayed then
           @tmp_image_displayed = false
@@ -177,16 +187,27 @@ class GyaimController < IMKInputController
           # KeyCoder.post_event [51,false]  # BS
           return true
         end
-        if @ws.searchmode > 0 then
+        File.open("/tmp/log","a"){ |f|
+          f.puts "nthCand = #{@ws.nthCand}"
+        }
+        if @ws.nthCand > 0 then # 候補のひとつを選択してた場合
           fix
         else
-          if @nthCand == 0 then
-            @ws.searchmode = 1
-            searchAndShowCands
-          else
-            fix
-          end
+          @ws.searchmode += 1
+          searchAndShowCands
         end
+       
+        #if @ws.searchmode > 0 then
+        #  fix
+        #else
+        #  if @nthCand == 0 then
+        #    @ws.searchmode += 1
+        #    searchAndShowCands
+        #  else
+        #    fix
+        #  end
+        #end
+        
         handled = true
       end
     elsif c >= 0x21 && c <= 0x7e && (modifierFlags & (NSControlKeyMask|NSCommandKeyMask|NSAlternateKeyMask)) == 0 then
@@ -218,8 +239,19 @@ class GyaimController < IMKInputController
     #
     # @ws.searchmode == 0 前方マッチ
     # @ws.searchmode == 1 完全マッチ ひらがな/カタカナも候補に加える
+    # @ws.searchmode == 2 GoogleSuggest検索
     #
-    if @ws.searchmode > 0 then
+    case @ws.searchmode
+    when 0 then
+      @ws.search(@inputPat)
+      @candidates = @ws.candidates
+      @candidates.unshift(@selectedstr) if @selectedstr && @selectedstr != ''
+      @candidates.unshift(@inputPat)
+      if @candidates.length < 8 then
+        hiragana = @inputPat.roma2hiragana
+        @candidates.push(hiragana)
+      end
+    when 1 then
       @ws.search(@inputPat)
       @candidates = @ws.candidates
       katakana = @inputPat.roma2katakana
@@ -232,17 +264,10 @@ class GyaimController < IMKInputController
         @candidates = delete(@candidates,hiragana)
         @candidates.unshift(hiragana)
       end
-    else
+    when 2 then
       @ws.search(@inputPat)
-      @candidates = @ws.candidates
-      @candidates.unshift(@selectedstr) if @selectedstr && @selectedstr != ''
-      @candidates.unshift(@inputPat)
-      if @candidates.length < 8 then
-        hiragana = @inputPat.roma2hiragana
-        @candidates.push(hiragana)
-      end
-
     end
+
     @nthCand = 0
     showCands
   end
