@@ -172,64 +172,20 @@ class GyaimController < IMKInputController
         handled = true
       end
     elsif c == 0x0a || c == 0x0d then
-      File.open("/tmp/log","a"){ |f|
-        f.puts "converting = #{converting}"
-      }
-      File.open("/tmp/log","a"){ |f|
-        begin
-          f.puts "@ws = #{@ws}"
-        rescue
-          f.puts "@ws = nil"
-        end
-      }
       if converting then
-        File.open("/tmp/log","a"){ |f|
-          f.puts "converting = TRUE"
-        }
-        File.open("/tmp/log","a"){ |f|
-          begin
-            f.puts "#{@tmp_image_displayed}"
-          rescue
-            f.puts "@tmp_image_displayed not found"
-          end
-        }
-        File.open("/tmp/log","a"){ |f|
-          f.puts "@ws.searchmode = #{@ws.searchmode}"
-        }
         if @tmp_image_displayed then
-          File.open("/tmp/log","a"){ |f|
-            f.puts "@tmp_image_displayed"
-          }
           @tmp_image_displayed = false
           resetState
           # KeyCoder.post_event [51,true]  # BS 何故かリターンで確定すると改行が入ってしまうので...
           # KeyCoder.post_event [51,false]  # BS
           return true
         end
-        File.open("/tmp/log","a"){ |f|
-          f.puts "@nthCand = #{@nthCand}"
-        }
         if @nthCand > 0 then # 候補のひとつを選択してた場合
           fix
         else
-          File.open("/tmp/log","a"){ |f|
-            f.puts "searchmode = #{@ws.searchmode}"
-          }
           @ws.searchmode += 1
           searchAndShowCands
         end
-       
-        #if @ws.searchmode > 0 then
-        #  fix
-        #else
-        #  if @nthCand == 0 then
-        #    @ws.searchmode += 1
-        #    searchAndShowCands
-        #  else
-        #    fix
-        #  end
-        #end
-        
         handled = true
       end
     elsif c >= 0x21 && c <= 0x7e && (modifierFlags & (NSControlKeyMask|NSCommandKeyMask|NSAlternateKeyMask)) == 0 then
@@ -263,9 +219,6 @@ class GyaimController < IMKInputController
     # @ws.searchmode == 1 完全マッチ ひらがな/カタカナも候補に加える
     # @ws.searchmode == 2 GoogleSuggest検索
     #
-    File.open("/tmp/log","a"){ |f|
-      f.puts "searchAndShowCands: @ws.searchmode = #{@ws.searchmode}"
-    }
     @candidates = []
     
     case @ws.searchmode
@@ -294,22 +247,12 @@ class GyaimController < IMKInputController
     when 2 then
       # @ws.search(@inputPat)
       
-      File.open("/tmp/log","a"){ |f|
-        f.puts "search-google: q = #{@inputPat}"
-      }
-
       @candidates = []
       AFMotion::JSON.get("http://google.com/transliterate", {langpair: "ja-Hira|ja", text: @inputPat.roma2hiragana}) do |result|
         result.object[0][1].each { |candword|
           @candidates << candword
         }
-        File.open("/tmp/log","a"){ |f|
-          f.puts "candidates = #{@candidates}"
-        }
         showCands # AFMotionが非同期なのでここで更新!
-        File.open("/tmp/log","a"){ |f|
-          f.puts "candidates = #{@candidates}"
-        }
         @nthCand = 0
       end
       return
