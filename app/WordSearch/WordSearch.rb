@@ -98,6 +98,9 @@ class WordSearch
   end
 
   def search(q,limit=10)
+    File.open("/tmp/log","a"){ |f|
+      f.puts "search(): @searchmode = #{@searchmode}"
+    }
     # @searchmode=0のとき前方マッチ, @searchmode=1のとき完全マッチとする
 
     return if q.nil? || q == ''
@@ -114,18 +117,22 @@ class WordSearch
     # パタンの最後にピリオドが入力されたらGoogle Suggestを検索
     
     if @searchmode == 2
-      registered = {}
-      words = []
-
-      AFMotion::JSON.get("http://google.com/transliterate", {langpair: "ja-Hira|ja", text: q.roma2hiragana}) do |result|
-        result.object[0][1].each { |candword|
-          if !candfound[candword] then
-            candfound[candword] = 1
-            @candidates << candword
-          end
-        }
-        GyaimController.showCands # AFMotionが非同期なのでここで更新!
-      end
+    #  registered = {}
+    #  words = []
+    #
+    #  File.open("/tmp/log","a"){ |f|
+    #    f.puts "search-google: q = #{q}"
+    #  }
+    #
+    #  AFMotion::JSON.get("http://google.com/transliterate", {langpair: "ja-Hira|ja", text: q.roma2hiragana}) do |result|
+    #    result.object[0][1].each { |candword|
+    #      if !candfound[candword] then
+    #        candfound[candword] = 1
+    #        @candidates << candword
+    #      end
+    #    }
+    #    GyaimController.showCands # AFMotionが非同期なのでここで更新!
+    #  end
     elsif q =~ /^(.*)\#$/ then
       #
       # 色指定

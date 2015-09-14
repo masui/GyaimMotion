@@ -30,7 +30,10 @@ class GyaimController < IMKInputController
 
     @textview = CandTextView.candTextView
     @candwin = CandWindow.candWindow
-
+    
+    @tmp_image_displayed = false
+    @nthCand = 0
+    
     # 辞書サーチ
     dictpath = NSBundle.mainBundle.pathForResource("dict", ofType:"txt")
     if @ws.nil? then
@@ -170,7 +173,7 @@ class GyaimController < IMKInputController
       end
     elsif c == 0x0a || c == 0x0d then
       File.open("/tmp/log","a"){ |f|
-        f.puts "cconverting = #{converting}"
+        f.puts "converting = #{converting}"
       }
       File.open("/tmp/log","a"){ |f|
         begin
@@ -180,7 +183,23 @@ class GyaimController < IMKInputController
         end
       }
       if converting then
+        File.open("/tmp/log","a"){ |f|
+          f.puts "converting = TRUE"
+        }
+        File.open("/tmp/log","a"){ |f|
+          begin
+            f.puts "#{@tmp_image_displayed}"
+          rescue
+            f.puts "@tmp_image_displayed not found"
+          end
+        }
+        File.open("/tmp/log","a"){ |f|
+          f.puts "@ws.searchmode = #{@ws.searchmode}"
+        }
         if @tmp_image_displayed then
+          File.open("/tmp/log","a"){ |f|
+            f.puts "@tmp_image_displayed"
+          }
           @tmp_image_displayed = false
           resetState
           # KeyCoder.post_event [51,true]  # BS 何故かリターンで確定すると改行が入ってしまうので...
@@ -188,11 +207,14 @@ class GyaimController < IMKInputController
           return true
         end
         File.open("/tmp/log","a"){ |f|
-          f.puts "nthCand = #{@ws.nthCand}"
+          f.puts "@nthCand = #{@nthCand}"
         }
-        if @ws.nthCand > 0 then # 候補のひとつを選択してた場合
+        if @nthCand > 0 then # 候補のひとつを選択してた場合
           fix
         else
+          File.open("/tmp/log","a"){ |f|
+            f.puts "searchmode = #{@ws.searchmode}"
+          }
           @ws.searchmode += 1
           searchAndShowCands
         end
@@ -241,6 +263,11 @@ class GyaimController < IMKInputController
     # @ws.searchmode == 1 完全マッチ ひらがな/カタカナも候補に加える
     # @ws.searchmode == 2 GoogleSuggest検索
     #
+    File.open("/tmp/log","a"){ |f|
+      f.puts "searchAndShowCands: @ws.searchmode = #{@ws.searchmode}"
+    }
+    @candidates = []
+    
     case @ws.searchmode
     when 0 then
       @ws.search(@inputPat)
@@ -265,7 +292,29 @@ class GyaimController < IMKInputController
         @candidates.unshift(hiragana)
       end
     when 2 then
-      @ws.search(@inputPat)
+      # @ws.search(@inputPat)
+      
+      File.open("/tmp/log","a"){ |f|
+        f.puts "search-google: q = #{@inputPat}"
+      }
+
+      @candidates = []
+      AFMotion::JSON.get("http://google.com/transliterate", {langpair: "ja-Hira|ja", text: @inputPat.roma2hiragana}) do |result|
+        result.object[0][1].each { |candword|
+          @candidates << candword
+        }
+        File.open("/tmp/log","a"){ |f|
+          f.puts "candidates = #{@candidates}"
+        }
+        showCands # AFMotionが非同期なのでここで更新!
+        File.open("/tmp/log","a"){ |f|
+          f.puts "candidates = #{@candidates}"
+        }
+        @nthCand = 0
+      end
+      return
+    else
+      @ws.searchmode = 0
     end
 
     @nthCand = 0
