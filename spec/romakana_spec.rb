@@ -12,5 +12,21 @@ describe "Romakana" do
 
   it "hiragana2roma" do
     "ますい".hiragana2roma.should == "masui"
+    # puts "るじおすっれー".hiragana2roma
   end
+
+  it "random" do
+    hiralist = "あいうえおぁぃぅぇぉかきくけこがぎぐげごさしすせそざじずぜぞたちつてとっだぢづでどっなにぬねのはひふへほまみむめもやゆよゃゅょらりるれろわをんー".split(//)
+    katalist = "アイウエオァィゥェォカキクケコガギグゲゴサシスセソザジズゼゾタチツテトッダヂヅデドッナニヌネノハヒフヘホマミムメモヤユヨャュョラリルレロワヲンーヴ".split(//)
+    1000.times { |count|
+      hira = (0..9).collect { |i|
+        hiralist[rand(hiralist.length)]
+      }.join
+      next if hira =~ /っっ/  # これが失敗する
+      # next if hira =~ /っじ/
+      roma = hira.hiragana2roma
+      roma.roma2hiragana.should == hira
+    }
+  end
+  
 end

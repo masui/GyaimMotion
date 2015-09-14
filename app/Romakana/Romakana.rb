@@ -451,3 +451,8 @@ class String
     @@rk.katakana2roma(self)[0].to_s
   end
 end
+
+if __FILE__ == $0 then
+  puts "じっじい".hiragana2roma.roma2hiragana
+  puts "かっかい".hiragana2roma
+end
