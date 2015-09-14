@@ -12,8 +12,11 @@ describe "Romakana" do
 
   it "hiragana2roma" do
     "ますい".hiragana2roma.should == "masui"
-    # puts "るじおすっれー".hiragana2roma
   end
+
+  #it "hiragana2roma" do
+  #  "ヴァイオリン".should == "vaxiorin"
+  #end
 
   it "random" do
     hiralist = "あいうえおぁぃぅぇぉかきくけこがぎぐげごさしすせそざじずぜぞたちつてとっだぢづでどっなにぬねのはひふへほまみむめもやゆよゃゅょらりるれろわをんー".split(//)
@@ -28,5 +31,4 @@ describe "Romakana" do
       roma.roma2hiragana.should == hira
     }
   end
-  
 end
