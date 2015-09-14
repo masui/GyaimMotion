@@ -177,7 +177,7 @@ class GyaimController < IMKInputController
           # KeyCoder.post_event [51,false]  # BS
           return true
         end
-        if @ws.searchmode > 0 then
+        if @ws.searchmode > 0 then ####
           fix
         else
           if @nthCand == 0 then
