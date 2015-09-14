@@ -1,3 +1,5 @@
+# coding: utf-8
+
 describe "Application 'GyaimMotion'" do
   before do
     @app = NSApplication.sharedApplication
@@ -7,3 +9,4 @@ describe "Application 'GyaimMotion'" do
     @app.windows.size.should == 1
   end
 end
+
