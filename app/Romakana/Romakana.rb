@@ -455,4 +455,5 @@ end
 if __FILE__ == $0 then
   puts "じっじい".hiragana2roma.roma2hiragana
   puts "かっかい".hiragana2roma
+  puts "ヴァイオリン".katakana2roma
 end

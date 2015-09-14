@@ -1,27 +1,32 @@
 # coding: utf-8
 
-describe "Romakana" do
+describe "ローマ字かな変換" do
   before do
   end
 
-  it "roma2hiragana" do
+  it "ローマ字 => ひらがな" do
     "masui".roma2hiragana.should == "ますい"
     "hannnya".roma2hiragana.should == "はんにゃ"
     # "han'nya".roma2hiragana.should == "はんにゃ"
   end
 
-  it "hiragana2roma" do
+  it "ひらがな => ローマ字" do
     "ますい".hiragana2roma.should == "masui"
   end
 
-  #it "hiragana2roma" do
-  #  "ヴァイオリン".should == "vaxiorin"
-  #end
+  it "ローマ字 => カタカナ" do
+    "vaiorinn".roma2katakana.should == "ヴァイオリン"
+  end
 
-  it "random" do
+  it "カタカナ => ローマ字" do
+    "ヴァイオリン".katakana2roma.should == "vaiorinn"
+  end
+
+  iter = 1000
+  it "ランダムに#{iter}個のかなを生成して変換" do
     hiralist = "あいうえおぁぃぅぇぉかきくけこがぎぐげごさしすせそざじずぜぞたちつてとっだぢづでどっなにぬねのはひふへほまみむめもやゆよゃゅょらりるれろわをんー".split(//)
     katalist = "アイウエオァィゥェォカキクケコガギグゲゴサシスセソザジズゼゾタチツテトッダヂヅデドッナニヌネノハヒフヘホマミムメモヤユヨャュョラリルレロワヲンーヴ".split(//)
-    1000.times { |count|
+    iter.times { |count|
       hira = (0..9).collect { |i|
         hiralist[rand(hiralist.length)]
       }.join

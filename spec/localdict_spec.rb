@@ -1,10 +1,10 @@
 # coding: utf-8
 
-describe "Local dictionary setup" do
+describe "ローカル辞書セットアップ" do
   before do
   end
 
-  it "localdict.txt should exist" do
+  it "localdict.txt が ~/.gyamdict の下にあること" do
     File.exist?(File.expand_path("~/.gyaimdict")).should == true
     File.exist?(File.expand_path("~/.gyaimdict/localdict.txt")).should == true
   end
