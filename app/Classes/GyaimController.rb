@@ -30,10 +30,7 @@ class GyaimController < IMKInputController
 
     @textview = CandTextView.candTextView
     @candwin = CandWindow.candWindow
-    
-    @tmp_image_displayed = false
-    @nthCand = 0
-    
+
     # 辞書サーチ
     dictpath = NSBundle.mainBundle.pathForResource("dict", ofType:"txt")
     if @ws.nil? then
@@ -180,12 +177,15 @@ class GyaimController < IMKInputController
           # KeyCoder.post_event [51,false]  # BS
           return true
         end
-
-        if @nthCand > 0 then # 候補のひとつを選択してた場合
+        if @ws.searchmode > 0 then ####
           fix
         else
-          @ws.searchmode += 1
-          searchAndShowCands
+          if @nthCand == 0 then
+            @ws.searchmode = 1
+            searchAndShowCands
+          else
+            fix
+          end
         end
         handled = true
       end
@@ -218,21 +218,8 @@ class GyaimController < IMKInputController
     #
     # @ws.searchmode == 0 前方マッチ
     # @ws.searchmode == 1 完全マッチ ひらがな/カタカナも候補に加える
-    # @ws.searchmode == 2 GoogleSuggest検索
     #
-    @candidates = []
-    
-    case @ws.searchmode
-    when 0 then
-      @ws.search(@inputPat)
-      @candidates = @ws.candidates
-      @candidates.unshift(@selectedstr) if @selectedstr && @selectedstr != ''
-      @candidates.unshift(@inputPat)
-      if @candidates.length < 8 then
-        hiragana = @inputPat.roma2hiragana
-        @candidates.push(hiragana)
-      end
-    when 1 then
+    if @ws.searchmode > 0 then
       @ws.search(@inputPat)
       @candidates = @ws.candidates
       katakana = @inputPat.roma2katakana
@@ -245,22 +232,17 @@ class GyaimController < IMKInputController
         @candidates = delete(@candidates,hiragana)
         @candidates.unshift(hiragana)
       end
-    when 2 then
-      # @ws.search(@inputPat)
-      
-      @candidates = []
-      AFMotion::JSON.get("http://google.com/transliterate", {langpair: "ja-Hira|ja", text: @inputPat.roma2hiragana}) do |result|
-        result.object[0][1].each { |candword|
-          @candidates << candword
-        }
-        showCands # AFMotionが非同期なのでここで更新!
-        @nthCand = 0
-      end
-      return
     else
-      @ws.searchmode = 0
-    end
+      @ws.search(@inputPat)
+      @candidates = @ws.candidates
+      @candidates.unshift(@selectedstr) if @selectedstr && @selectedstr != ''
+      @candidates.unshift(@inputPat)
+      if @candidates.length < 8 then
+        hiragana = @inputPat.roma2hiragana
+        @candidates.push(hiragana)
+      end
 
+    end
     @nthCand = 0
     showCands
   end

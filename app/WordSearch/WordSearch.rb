@@ -110,10 +110,34 @@ class WordSearch
     candfound = {}
     @candidates = []
 
-    #if q.length > 1 && q.sub!(/\.$/,'') then
-    # パタンの最後にピリオドが入力されたらGoogle Suggestを検索
-    
-    if @searchmode > 1
+    if q.length > 1 && q.sub!(/\.$/,'') then
+      # パタンの最後にピリオドが入力されたらGoogle Suggestを検索
+      registered = {}
+      words = []
+
+      # Google Suggest API ... 何度も使ってると拒否られるようになった
+      #Net::HTTP.start('google.co.jp', 80) {|http|
+      #  response = http.get("/complete/search?output=toolbar&hl=ja&q=#{q}",header)
+      #  s = response.body.to_s
+      #  s = NKF.nkf('-w',s)
+      #  while s.sub!(/data="([^"]*)"\/>/,'') do
+      #    word = $1.split[0]
+      #    if !candfound[word] then
+      #      candfound[word] = 1
+      #      @candidates << word
+      #    end
+      #  end
+      #}
+
+      AFMotion::JSON.get("http://google.com/transliterate", {langpair: "ja-Hira|ja", text: q.roma2hiragana}) do |result|
+        result.object[0][1].each { |candword|
+          if !candfound[candword] then
+            candfound[candword] = 1
+            @candidates << candword
+          end
+        }
+        GyaimController.showCands # AFMotionが非同期なのでここで更新!
+      end
     elsif q =~ /^(.*)\#$/ then
       #
       # 色指定
