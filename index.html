@@ -22,8 +22,8 @@
 
       <p>
 	<ul>
-	  <li>GyaimはMacOS Yosemite用の日本語入力IMEです。</li>
-	  <li>Rubyで記述されています。</li>
+	  <li>GyaimはMacOS Yosemite用の日本語入力IMEです。(古いMacOSでは多分動きません)</li>
+	  <li>1000行程度のRubyで記述されています。</li>
 	</ul>
       </p>
 
@@ -31,7 +31,16 @@
       <p>
 	<ul>
 	  <li><a href="https://github.com/masui/GyaimMotion/raw/master/Gyaim.dmg">Gyaim.dmg</a>をダウンロードして展開し、<code>~/Library/Input Methods</code>にコピーします。</li>
-	  <li>システム環境設定を開き、「キーボード」を
+	  <li>「システム環境設定」の「キーボード」の「入力ソース」を選択して左下の「＋」をクリックし、「日本語」の中の「Gyaim」を選択して「追加」をクリックします。</li>
+	</ul>
+      </p>
+
+      <h3><a class="anchor" aria-hidden="true"></a>ビルド</h3>
+      <p>
+	<ul>
+	  <li><a href="">RubyMotion</a>が必要です</li>
+	  <li><code>bundle install</code>でgemをインストールします
+	  <li><code>rake</code>でビルドします
 	</ul>
       </p>
 
