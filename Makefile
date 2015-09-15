@@ -9,6 +9,8 @@ clean:
 	rake clean
 kill:
 	-killall Gyaim
+test:
+	rake spec
 
 all: clean ib build
 update: kill cp

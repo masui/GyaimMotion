@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 #
 # GyaimController.rb
-# Gyaim
 #
 # Created by Toshiyuki Masui on 2011/3/14.
 # Modified by Toshiyuki Masui on 2015/9.
@@ -88,10 +87,6 @@ class GyaimController < IMKInputController
     # かなキーボードのコード
     kVirtual_JISRomanModeKey = 102
     kVirtual_JISKanaModeKey  = 104
-    kVirtual_Arrow_Left      = 0x7B
-    kVirtual_Arrow_Right     = 0x7C
-    kVirtual_Arrow_Down      = 0x7D
-    kVirtual_Arrow_Up        = 0x7E
 
     @client = sender
     # puts "handleEvent: event.type = #{event.type}"
@@ -100,12 +95,6 @@ class GyaimController < IMKInputController
     eventString = event.characters
     keyCode = event.keyCode
     modifierFlags = event.modifierFlags
-
-    # puts "handleEvent: event = #{event}"
-    # puts "handleEvent: sender = #{sender}"
-    # puts "handleEvent: eventString=#{eventString}"
-    # puts "handleEvent: keyCode=#{keyCode}"
-    # puts "handleEvent: modifierFlags=#{modifierFlags}"
 
     # 選択されている文字列があれば覚えておく
     # 後で登録に利用するかも
@@ -126,7 +115,6 @@ class GyaimController < IMKInputController
     # する方法がわからないので...
     s = sprintf("%s",eventString) # NSStringを普通のStringに??
     c = s.each_byte.to_a[0]
-    # puts sprintf("c = 0x%x",c)
 
     #
     # スペース、バックスペース、通常文字などの処理
@@ -135,8 +123,6 @@ class GyaimController < IMKInputController
       if converting && @tmp_image_displayed && !@bs_through then
         @tmp_image_displayed = false
         keyin(51) # Delete
-        # KeyCoder.post_event [51,true]   # Delete
-        # KeyCoder.post_event [51,false]  # Delete
         return true
       end
       if !@bs_through then
@@ -155,15 +141,8 @@ class GyaimController < IMKInputController
     elsif c == 0x20 then
       if converting then
         if @tmp_image_displayed then
-          keyin("z", "command down")
-          #KeyCoder.post_event [55,true]  # CMD
-          #KeyCoder.post_event [6,true]   # Z
-          #KeyCoder.post_event [6,false]  # Z
-          #KeyCoder.post_event [55,false] # CMD
-
-          keyin(49) # SP
-          #KeyCoder.post_event [49,true]   # SP 
-          #KeyCoder.post_event [49,false]  # SP
+          keyin("z", "command down") # undo
+          keyin(49)                  # SP
           
           @tmp_image_displayed = false
           return true
@@ -182,7 +161,7 @@ class GyaimController < IMKInputController
           resetState
           return true
         end
-        if @ws.searchmode > 0 then ####
+        if @ws.searchmode > 0 then
           fix
         else
           if @nthCand == 0 then
@@ -260,11 +239,7 @@ class GyaimController < IMKInputController
 
       if word =~ /^[0-9a-f]{32}$/ then
         if !@tmp_image_displayed then
-          keyin("v", "command down")
-          #KeyCoder.post_event [55,true]  # CMD
-          #KeyCoder.post_event [9,true]   # V
-          #KeyCoder.post_event [9,false]  # V
-          #KeyCoder.post_event [55,false] # CMD
+          keyin("v", "command down") # paste
         end
         @tmp_image_displayed = false
       else
@@ -313,9 +288,7 @@ class GyaimController < IMKInputController
         # 入力中モードじゃなくするためのハック
         @client.insertText(' ',replacementRange:NSMakeRange(NSNotFound, NSNotFound))
         @bs_through = true
-        keyin(51)
-        # KeyCoder.post_event [51,true]  # BS
-        # KeyCoder.post_event [51,false]  # BS
+        keyin(51) # delete
 
         # 画像をペーストボードに貼る
         mainBundle = NSBundle.mainBundle
@@ -333,26 +306,13 @@ class GyaimController < IMKInputController
         pasteboard.setData(imagedata,forType:NSTIFFPboardType)
         pasteboard.setString("[[http://Gyazo.com/#{word}.png]]",forType:NSStringPboardType)
 
-        keyin("v","command down")
-        #KeyCoder.post_event [55,true]  # CMD
-        #KeyCoder.post_event [9,true]   # V
-        #KeyCoder.post_event [9,false]  # V
-        #KeyCoder.post_event [55,false] # CMD
+        keyin("v","command down") # paste
 
         @tmp_image_displayed = true
       else
         if @tmp_image_displayed then
+          keyin("z","command down") # undo
 
-          # undo
-          keyin("z","command down")
-          #KeyCoder.post_event [55,true]  # CMD
-          #KeyCoder.post_event [6,true]   # Z
-          #KeyCoder.post_event [6,false]  # Z
-          #KeyCoder.post_event [55,false] # CMD
-
-##          @bs_through = true
-##          KeyCoder.post_event [51,true]  # BS
-##          KeyCoder.post_event [51,false]  # BS
           @tmp_image_displayed = false
         end
 
@@ -404,7 +364,7 @@ class GyaimController < IMKInputController
   #
   def showWindow
     # MacRubyでポインタを使うための苦しいやり方
-    # 説明: http://d.hatena.ne.jp/Watson/20100823/1282543331
+    # http://d.hatena.ne.jp/Watson/20100823/1282543331
     #
     lineRectP = Pointer.new('{CGRect={CGPoint=dd}{CGSize=dd}}')
     @client.attributesForCharacterIndex(0,lineHeightRectangle:lineRectP)

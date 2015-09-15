@@ -24,4 +24,30 @@
 入力システム名
   InfoPlist.strings に書く
     Info.plistには書かない
-    
+
+■ キーエミュレーション
+
+  def keyin(keycode, modifier=nil) # OSXでキー入力エミュレーション
+    modstr = ""
+    modstr = ", {using:[\"#{modifier}\"]}" if modifier
+    jscmd =
+      if keycode.class == String then
+        "Application(\"System Events\").keystroke(\"#{keycode}\"#{modstr});"
+      else
+        "Application(\"System Events\").keyCode(#{keycode}#{modstr});"
+      end
+    system "osascript -l JavaScript -e '#{jscmd}'"
+  end
+  
+  keyin('a')
+  keyin('v',"command down")
+  keyin(51)
+  
+  # system "osascript -l JavaScript -e 'Application(\"System Events\").keystroke(\"v\", {using:[\"command down\"]});'"
+
+
+  
+      #if c == 0x08 then
+      #  system "osascript -l JavaScript -e 'Application(\"System Events\").keystroke(\"v\", {using:[\"command down\"]});'"        
+      #end
+
