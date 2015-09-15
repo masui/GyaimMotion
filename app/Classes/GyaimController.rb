@@ -8,11 +8,6 @@
 # Copyright 2011-15 Pitecan Systems. All rights reserved.
 #
 
-# http://ferrous26.com/blog/2012/04/03/axelements-part1/
-
-# require 'accessibility/string'
-# include Accessibility::String
-
 class GyaimController < IMKInputController
   #@ws = nil
   @@gc = nil
@@ -23,6 +18,18 @@ class GyaimController < IMKInputController
 
   def cacheDir
     File.expand_path("~/.gyaimdict/cacheimages")
+  end
+
+  def keyin(keycode, modifier=nil) # OSXでキー入力エミュレーション
+    modstr = ""
+    modstr = ", {using:[\"#{modifier}\"]}" if modifier
+    jscmd =
+      if keycode.class == String then
+        "Application(\"System Events\").keystroke(\"#{keycode}\"#{modstr});"
+      else
+        "Application(\"System Events\").keyCode(#{keycode}#{modstr});"
+      end
+    system "osascript -l JavaScript -e '#{jscmd}'"
   end
 
   def initWithServer(server, delegate:d, client:c)
@@ -127,8 +134,9 @@ class GyaimController < IMKInputController
     if c == 0x08 || c == 0x7f || c == 0x1b then
       if converting && @tmp_image_displayed && !@bs_through then
         @tmp_image_displayed = false
-        KeyCoder.post_event [51,true]   # BS
-        KeyCoder.post_event [51,false]  # BS
+        keyin(51) # Delete
+        # KeyCoder.post_event [51,true]   # Delete
+        # KeyCoder.post_event [51,false]  # Delete
         return true
       end
       if !@bs_through then
@@ -147,17 +155,16 @@ class GyaimController < IMKInputController
     elsif c == 0x20 then
       if converting then
         if @tmp_image_displayed then
-##          @bs_through = true
-##          KeyCoder.post_event [51,true]   # BS BSで画像を消してから再度スペースを入力したことにする
-##          KeyCoder.post_event [51,false]  # BS
+          keyin("z", "command down")
+          #KeyCoder.post_event [55,true]  # CMD
+          #KeyCoder.post_event [6,true]   # Z
+          #KeyCoder.post_event [6,false]  # Z
+          #KeyCoder.post_event [55,false] # CMD
 
-          KeyCoder.post_event [55,true]  # CMD
-          KeyCoder.post_event [6,true]   # Z
-          KeyCoder.post_event [6,false]  # Z
-          KeyCoder.post_event [55,false] # CMD
-
-          KeyCoder.post_event [49,true]   # SP 
-          KeyCoder.post_event [49,false]  # SP
+          keyin(49) # SP
+          #KeyCoder.post_event [49,true]   # SP 
+          #KeyCoder.post_event [49,false]  # SP
+          
           @tmp_image_displayed = false
           return true
         end
@@ -173,8 +180,6 @@ class GyaimController < IMKInputController
         if @tmp_image_displayed then
           @tmp_image_displayed = false
           resetState
-          # KeyCoder.post_event [51,true]  # BS 何故かリターンで確定すると改行が入ってしまうので...
-          # KeyCoder.post_event [51,false]  # BS
           return true
         end
         if @ws.searchmode > 0 then ####
@@ -255,13 +260,11 @@ class GyaimController < IMKInputController
 
       if word =~ /^[0-9a-f]{32}$/ then
         if !@tmp_image_displayed then
-##          @client.insertText(' ',replacementRange:NSMakeRange(NSNotFound, NSNotFound))
-##          KeyCoder.post_event [51,true]  # BS
-##          KeyCoder.post_event [51,false]  # BS
-          KeyCoder.post_event [55,true]  # CMD
-          KeyCoder.post_event [9,true]   # V
-          KeyCoder.post_event [9,false]  # V
-          KeyCoder.post_event [55,false] # CMD
+          keyin("v", "command down")
+          #KeyCoder.post_event [55,true]  # CMD
+          #KeyCoder.post_event [9,true]   # V
+          #KeyCoder.post_event [9,false]  # V
+          #KeyCoder.post_event [55,false] # CMD
         end
         @tmp_image_displayed = false
       else
@@ -310,8 +313,9 @@ class GyaimController < IMKInputController
         # 入力中モードじゃなくするためのハック
         @client.insertText(' ',replacementRange:NSMakeRange(NSNotFound, NSNotFound))
         @bs_through = true
-        KeyCoder.post_event [51,true]  # BS
-        KeyCoder.post_event [51,false]  # BS
+        keyin(51)
+        # KeyCoder.post_event [51,true]  # BS
+        # KeyCoder.post_event [51,false]  # BS
 
         # 画像をペーストボードに貼る
         mainBundle = NSBundle.mainBundle
@@ -329,20 +333,22 @@ class GyaimController < IMKInputController
         pasteboard.setData(imagedata,forType:NSTIFFPboardType)
         pasteboard.setString("[[http://Gyazo.com/#{word}.png]]",forType:NSStringPboardType)
 
-        KeyCoder.post_event [55,true]  # CMD
-        KeyCoder.post_event [9,true]   # V
-        KeyCoder.post_event [9,false]  # V
-        KeyCoder.post_event [55,false] # CMD
+        keyin("v","command down")
+        #KeyCoder.post_event [55,true]  # CMD
+        #KeyCoder.post_event [9,true]   # V
+        #KeyCoder.post_event [9,false]  # V
+        #KeyCoder.post_event [55,false] # CMD
 
         @tmp_image_displayed = true
       else
         if @tmp_image_displayed then
 
           # undo
-          KeyCoder.post_event [55,true]  # CMD
-          KeyCoder.post_event [6,true]   # Z
-          KeyCoder.post_event [6,false]  # Z
-          KeyCoder.post_event [55,false] # CMD
+          keyin("z","command down")
+          #KeyCoder.post_event [55,true]  # CMD
+          #KeyCoder.post_event [6,true]   # Z
+          #KeyCoder.post_event [6,false]  # Z
+          #KeyCoder.post_event [55,false] # CMD
 
 ##          @bs_through = true
 ##          KeyCoder.post_event [51,true]  # BS
