@@ -7,10 +7,6 @@ require 'motion/project/template/osx'
 
 require 'rm-digest'
 
-require 'accessibility/string'
-
-# puts Accessibility
-
 begin
   require 'bundler'
   Bundler.require

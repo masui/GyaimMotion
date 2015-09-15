@@ -6,3 +6,7 @@
 * RubyMotionでIMEを作れることがわかったのでとりあえず公開している。
 * Yosemite以降で利用。SnowLeopard以前だとMacRuby版で大丈夫なはず。
 
+## インストール
+
+* ```Gyaim.dmg```を開いて```Gyaim.app```を```~/Library/Input Methods/```フォルダにコピーする
+* 

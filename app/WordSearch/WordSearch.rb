@@ -83,6 +83,12 @@ class WordSearch
   def initialize(dictfile)
     @searchmode = 0
     Dir.mkdir(dictDir) unless File.exist?(dictDir)
+    Dir.mkdir(cacheDir) unless File.exist?(cacheDir)
+    Dir.mkdir(imageDir) unless File.exist?(imageDir)
+    #File.open(localDictFile,"w"){ |f| f.puts "masui\t増井" } unless File.exist?(localDictFile)
+    #File.open(studyDictFile,"w"){ |f| f.puts "masui\t増井" } unless File.exist?(studyDictFile)
+    File.open(localDictFile,"w"){ |f| f.print "" } unless File.exist?(localDictFile)
+    File.open(studyDictFile,"w"){ |f| f.print "" } unless File.exist?(studyDictFile)
 
     # 固定辞書初期化
     @cd = ConnectionDict.new(dictfile)

@@ -12,3 +12,4 @@ gem "afmotion"   # これを入れると rake pod:install で vendor/ ができ�
 
 # gem "AXTyper" # Accessibilityは使えないか?
 
+# gem 'motion-fileutils' # for touch
