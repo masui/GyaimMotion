@@ -7,10 +7,17 @@ describe "暗号化/復号化" do
   it "encode / decode" do
     str = "あいうえお"
     key = "abcdefg"
-    Crypt.decrypt(Crypt.encrypt(str,key),key).should == str
+    encoded = Crypt.encrypt(str,key)
+    encoded.should.match /^[0-9a-f]+$/i
+    decoded = Crypt.decrypt(encoded,key)
+    decoded.should == str
+    
     str = "とても長い文字列"
     key = "とても長いキー"
-    Crypt.decrypt(Crypt.encrypt(str,key),key).should == str
+    encoded = Crypt.encrypt(str,key)
+    encoded.should.match /^[0-9a-f]+$/i
+    decoded = Crypt.decrypt(encoded,key)
+    decoded.should == str
   end
 end
 
