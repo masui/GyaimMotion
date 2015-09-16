@@ -8,7 +8,8 @@
 
 class Emulation
   #
-  # JXA(MacのJavaScript)でキーボードエミュレーションを行なう
+  # JXA(MacのJavaScript)でキーボードエミュレーションを行なう. (Yosemite以降のみ)
+  # かなり苦しいが割と安定して動いている.
   #
   def Emulation.key(keycode, modifier=nil)
     #

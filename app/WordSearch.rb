@@ -65,8 +65,6 @@ class WordSearch
     Dir.mkdir(DictFiles.dictDir) unless File.exist?(DictFiles.dictDir)
     Dir.mkdir(DictFiles.cacheDir) unless File.exist?(DictFiles.cacheDir)
     Dir.mkdir(DictFiles.imageDir) unless File.exist?(DictFiles.imageDir)
-    #File.open(DictFiles.localDictFile,"w"){ |f| f.puts "masui\t増井" } unless File.exist?(DictFiles.localDictFile)
-    #File.open(DictFiles.studyDictFile,"w"){ |f| f.puts "masui\t増井" } unless File.exist?(DictFiles.studyDictFile)
     File.open(DictFiles.localDictFile,"w"){ |f| f.print "" } unless File.exist?(DictFiles.localDictFile)
     File.open(DictFiles.studyDictFile,"w"){ |f| f.print "" } unless File.exist?(DictFiles.studyDictFile)
 
