@@ -1,4 +1,4 @@
-# -*- coding: utf-8 -*-
+# -*- coding: utf-8-emacs -*-
 #
 # GyaimController.rb
 #
@@ -10,14 +10,6 @@
 class GyaimController < IMKInputController
   #@ws = nil
   @@gc = nil
-
-  def imageDir
-    File.expand_path("~/.gyaimdict/images")
-  end
-
-  def cacheDir
-    File.expand_path("~/.gyaimdict/cacheimages")
-  end
 
   def initWithServer(server, delegate:d, client:c)
     @client = c   # Lexierraではこれをnilにしてた。何故?
@@ -283,12 +275,9 @@ class GyaimController < IMKInputController
         Emulation.key(51) # delete
 
         # 画像をペーストボードに貼る
-        mainBundle = NSBundle.mainBundle
-        # imagepath = mainBundle.pathForResource(word,ofType:"png")
-        # imagepath = "#{mainBundle.bundlePath}/Contents/Resources/#{word}.png"
-        imagepath = "#{cacheDir}/#{word}.png"
+        imagepath = "#{DictFiles.cacheDir}/#{word}.png"
         if !File.exists?(imagepath) then
-          imagepath = "#{imageDir}/#{word}.png"
+          imagepath = "#{DictFiles.imageDir}/#{word}.png"
         end
         image = NSImage.alloc.initByReferencingFile(imagepath)
         imagedata = image.TIFFRepresentation
@@ -324,12 +313,12 @@ class GyaimController < IMKInputController
       w = @cands[@nthCand+1+i]
       break if w.nil?
       if imagecand?(w) then
-        imagepath = "#{cacheDir}/#{w}s.png"
+        imagepath = "#{DictFiles.cacheDir}/#{w}s.png"
         if !File.exists?(imagepath) then
-          imagepath = "#{imageDir}/#{w}s.png"
+          imagepath = "#{DictFiles.imageDir}/#{w}s.png"
         end
         if !File.exists?(imagepath) then
-          imageorigpath = "#{imageDir}/#{w}.png"
+          imageorigpath = "#{DictFiles.imageDir}/#{w}.png"
           system "/opt/local/bin/wget http://Gyazo.com/#{w}.png -O '#{imageorigpath}' > /dev/null >& /dev/null"
           system "/bin/cp '#{imageorigpath}' '#{imagepath}'"
           system "/usr/bin/sips --resampleHeight 20 '#{imagepath}' > /dev/null >& /dev/null"

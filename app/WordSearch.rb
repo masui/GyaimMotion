@@ -9,42 +9,22 @@
 class WordSearch
   attr :searchmode, true
 
-  def dictDir
-    File.expand_path("~/.gyaimdict")
-  end
-
-  def cacheDir
-    "#{dictDir}/cacheimages"
-  end
-
-  def imageDir
-    "#{dictDir}/images"
-  end
-
-  def localDictFile
-    "#{dictDir}/localdict.txt"
-  end
-
-  def studyDictFile
-    "#{dictDir}/studydict.txt"
-  end
-
   def downloadImage(url)
     downloaded = {}
-    marshalfile = "#{cacheDir}/downloaded"
+    marshalfile = "#{DictFiles.cacheDir}/downloaded"
     if File.exist?(marshalfile) then
       downloaded = Marshal.load(File.read(marshalfile))
     end
     if !downloaded[url] then
       begin
-        system "/opt/local/bin/wget #{url} -O #{cacheDir}/tmpimage > /dev/null >& /dev/null"
-        system "sips -s format png #{cacheDir}/tmpimage --resampleHeight 100 --out #{cacheDir}/tmpimage.png > /dev/null >& /dev/null"
-        # system "sips --resampleHeight 50 #{cacheDir}/tmpimage.png > /dev/null >& /dev/null"
-        imagedata = File.read("#{cacheDir}/tmpimage.png")
+        system "/opt/local/bin/wget #{url} -O #{DictFiles.cacheDir}/tmpimage > /dev/null >& /dev/null"
+        system "sips -s format png #{DictFiles.cacheDir}/tmpimage --resampleHeight 100 --out #{DictFiles.cacheDir}/tmpimage.png > /dev/null >& /dev/null"
+        # system "sips --resampleHeight 50 #{DictFiles.cacheDir}/tmpimage.png > /dev/null >& /dev/null"
+        imagedata = File.read("#{DictFiles.cacheDir}/tmpimage.png")
         id = Digest::MD5.hexdigest(imagedata)
-        system "/bin/mv #{cacheDir}/tmpimage.png #{cacheDir}/#{id}.png"
-        system "/bin/cp #{cacheDir}/#{id}.png #{cacheDir}/#{id}s.png"
-        system "/usr/bin/sips --resampleHeight 20 #{cacheDir}/#{id}s.png > /dev/null >& /dev/null"
+        system "/bin/mv #{DictFiles.cacheDir}/tmpimage.png #{DictFiles.cacheDir}/#{id}.png"
+        system "/bin/cp #{DictFiles.cacheDir}/#{id}.png #{DictFiles.cacheDir}/#{id}s.png"
+        system "/usr/bin/sips --resampleHeight 20 #{DictFiles.cacheDir}/#{id}s.png > /dev/null >& /dev/null"
         downloaded[url] = id
       rescue
         res = false
@@ -82,23 +62,23 @@ class WordSearch
   # dict = "../Resources/dict.txt"
   def initialize(dictfile)
     @searchmode = 0
-    Dir.mkdir(dictDir) unless File.exist?(dictDir)
-    Dir.mkdir(cacheDir) unless File.exist?(cacheDir)
-    Dir.mkdir(imageDir) unless File.exist?(imageDir)
-    #File.open(localDictFile,"w"){ |f| f.puts "masui\t増井" } unless File.exist?(localDictFile)
-    #File.open(studyDictFile,"w"){ |f| f.puts "masui\t増井" } unless File.exist?(studyDictFile)
-    File.open(localDictFile,"w"){ |f| f.print "" } unless File.exist?(localDictFile)
-    File.open(studyDictFile,"w"){ |f| f.print "" } unless File.exist?(studyDictFile)
+    Dir.mkdir(DictFiles.dictDir) unless File.exist?(DictFiles.dictDir)
+    Dir.mkdir(DictFiles.cacheDir) unless File.exist?(DictFiles.cacheDir)
+    Dir.mkdir(DictFiles.imageDir) unless File.exist?(DictFiles.imageDir)
+    #File.open(DictFiles.localDictFile,"w"){ |f| f.puts "masui\t増井" } unless File.exist?(DictFiles.localDictFile)
+    #File.open(DictFiles.studyDictFile,"w"){ |f| f.puts "masui\t増井" } unless File.exist?(DictFiles.studyDictFile)
+    File.open(DictFiles.localDictFile,"w"){ |f| f.print "" } unless File.exist?(DictFiles.localDictFile)
+    File.open(DictFiles.studyDictFile,"w"){ |f| f.print "" } unless File.exist?(DictFiles.studyDictFile)
 
     # 固定辞書初期化
     @cd = ConnectionDict.new(dictfile)
 
     # 個人辞書を読出し
-    @localdict = loadDict(localDictFile)
-    @localdicttime = File.mtime(localDictFile)
+    @localdict = loadDict(DictFiles.localDictFile)
+    @localdicttime = File.mtime(DictFiles.localDictFile)
 
     # 学習辞書を読出し
-    @studydict = loadDict(studyDictFile)
+    @studydict = loadDict(DictFiles.studyDictFile)
   end
 
   def search(q,limit=10)
@@ -107,8 +87,8 @@ class WordSearch
     return if q.nil? || q == ''
 
     # 別システムによりlocalDictが更新されたときは読み直す
-    if File.mtime(localDictFile) > @localdicttime then
-      @localdict = loadDict(localDictFile)
+    if File.mtime(DictFiles.localDictFile) > @localdicttime then
+      @localdict = loadDict(DictFiles.localDictFile)
     end
 
     candfound = {}
@@ -156,10 +136,10 @@ class WordSearch
         data = [[[r,g,b]] * 20] * 20
         pngsmall = PNG.png(data)
         id = Digest::MD5.hexdigest(pnglarge)
-        File.open("#{imageDir}/#{id}.png","w"){ |f|
+        File.open("#{DictFiles.imageDir}/#{id}.png","w"){ |f|
           f.print pnglarge
         }
-        File.open("#{imageDir}/#{id}s.png","w"){ |f|
+        File.open("#{DictFiles.imageDir}/#{id}s.png","w"){ |f|
           f.print pngsmall
         }
         @candidates << id
@@ -235,8 +215,8 @@ class WordSearch
     puts "register(#{word},#{yomi})"
     if !@localdict.index([yomi,word]) then
       @localdict.unshift([yomi,word])
-      saveDict(localDictFile,@localdict)
-      @localdicttime = File.mtime(localDictFile)
+      saveDict(DictFiles.localDictFile,@localdict)
+      @localdicttime = File.mtime(DictFiles.localDictFile)
     end
   end
 
@@ -305,13 +285,13 @@ class WordSearch
     # 実行すると変換が遅れて文字をとりこぼしてしまう。
     # たいした処理をしてないのに何故だろうか?
     # Thread.new do
-    #  @studydict = loadDict(studyDictFile)
+    #  @studydict = loadDict(DictFiles.studyDictFile)
     # end
     # どうしても駄目なのでロードするのをやめる。再ロードしたいときはKillすることに...
   end
 
   def finish
-    saveDict(studyDictFile,@studydict)
+    saveDict(DictFiles.studyDictFile,@studydict)
   end
 
 end
