@@ -1,3 +1,7 @@
+■ GitHub Pages
+
+  gh-pagesブランチを使う
+
 ■ RubyMotion
 
   appの下のものが勝手にコンパイルされる
@@ -40,14 +44,6 @@
   end
   
   keyin('a')
-  keyin('v',"command down")
-  keyin(51)
-  
-  # system "osascript -l JavaScript -e 'Application(\"System Events\").keystroke(\"v\", {using:[\"command down\"]});'"
-
-
-  
-      #if c == 0x08 then
-      #  system "osascript -l JavaScript -e 'Application(\"System Events\").keystroke(\"v\", {using:[\"command down\"]});'"        
-      #end
+  keyin('v',"command down") # Ctrl-v
+  keyin(51) # del
 

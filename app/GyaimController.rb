@@ -19,18 +19,6 @@ class GyaimController < IMKInputController
     File.expand_path("~/.gyaimdict/cacheimages")
   end
 
-  def keyin(keycode, modifier=nil) # OSXでキー入力エミュレーション
-    modstr = ""
-    modstr = ", {using:[\"#{modifier}\"]}" if modifier
-    jscmd =
-      if keycode.class == String then
-        "Application(\"System Events\").keystroke(\"#{keycode}\"#{modstr});"
-      else
-        "Application(\"System Events\").keyCode(#{keycode}#{modstr});"
-      end
-    system "osascript -l JavaScript -e '#{jscmd}'"
-  end
-
   def initWithServer(server, delegate:d, client:c)
     @client = c   # Lexierraではこれをnilにしてた。何故?
 
@@ -122,7 +110,7 @@ class GyaimController < IMKInputController
     if c == 0x08 || c == 0x7f || c == 0x1b then
       if converting && @tmp_image_displayed && !@bs_through then
         @tmp_image_displayed = false
-        keyin(51) # Delete
+        Emulation.key(51) # Delete
         return true
       end
       if !@bs_through then
@@ -141,8 +129,8 @@ class GyaimController < IMKInputController
     elsif c == 0x20 then
       if converting then
         if @tmp_image_displayed then
-          keyin("z", "command down") # undo
-          keyin(49)                  # SP
+          Emulation.key("z", "command down") # undo
+          Emulation.key(49)                  # SP
           
           @tmp_image_displayed = false
           return true
@@ -239,7 +227,7 @@ class GyaimController < IMKInputController
 
       if word =~ /^[0-9a-f]{32}$/ then
         if !@tmp_image_displayed then
-          keyin("v", "command down") # paste
+          Emulation.key("v", "command down") # paste
         end
         @tmp_image_displayed = false
       else
@@ -288,7 +276,7 @@ class GyaimController < IMKInputController
         # 入力中モードじゃなくするためのハック
         @client.insertText(' ',replacementRange:NSMakeRange(NSNotFound, NSNotFound))
         @bs_through = true
-        keyin(51) # delete
+        Emulation.key(51) # delete
 
         # 画像をペーストボードに貼る
         mainBundle = NSBundle.mainBundle
@@ -306,12 +294,12 @@ class GyaimController < IMKInputController
         pasteboard.setData(imagedata,forType:NSTIFFPboardType)
         pasteboard.setString("[[http://Gyazo.com/#{word}.png]]",forType:NSStringPboardType)
 
-        keyin("v","command down") # paste
+        Emulation.key("v","command down") # paste
 
         @tmp_image_displayed = true
       else
         if @tmp_image_displayed then
-          keyin("z","command down") # undo
+          Emulation.key("z","command down") # undo
 
           @tmp_image_displayed = false
         end
