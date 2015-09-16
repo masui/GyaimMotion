@@ -218,6 +218,10 @@ class GyaimController < IMKInputController
     @nthCand = 0
     showCands
   end
+
+  def imagecand?(word) # wordがハッシュ値ならGyazoの画像候補だと判断
+    word =~ /^[0-9a-f]{32}$/i
+  end
   
   def fix
     if @candidates.length > @nthCand then
@@ -225,7 +229,7 @@ class GyaimController < IMKInputController
       # 何故かinsertTextだとhandleEventが呼ばれてしまうようで
       # @client.insertText(word)
 
-      if word =~ /^[0-9a-f]{32}$/ then
+      if imagecand?(word) then
         if !@tmp_image_displayed then
           Emulation.key("v", "command down") # paste
         end
@@ -272,7 +276,7 @@ class GyaimController < IMKInputController
     }
     word = @cands[@nthCand]
     if word then
-      if word =~ /^[0-9a-f]{32}$/ then
+      if imagecand?(word) then
         # 入力中モードじゃなくするためのハック
         @client.insertText(' ',replacementRange:NSMakeRange(NSNotFound, NSNotFound))
         @bs_through = true
@@ -294,7 +298,8 @@ class GyaimController < IMKInputController
         pasteboard.setData(imagedata,forType:NSTIFFPboardType)
         pasteboard.setString("[[http://Gyazo.com/#{word}.png]]",forType:NSStringPboardType)
 
-        Emulation.key("v","command down") # paste
+        # 画像をペースト
+        Emulation.key("v","command down") # Cmd-v を送る
 
         @tmp_image_displayed = true
       else
@@ -318,7 +323,7 @@ class GyaimController < IMKInputController
     (0..10).each { |i|
       w = @cands[@nthCand+1+i]
       break if w.nil?
-      if w =~ /^[0-9a-f]{32}$/ then
+      if imagecand?(w) then
         imagepath = "#{cacheDir}/#{w}s.png"
         if !File.exists?(imagepath) then
           imagepath = "#{imageDir}/#{w}s.png"
