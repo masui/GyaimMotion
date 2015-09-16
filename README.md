@@ -1,6 +1,6 @@
 # GyaimMotion - RubyMotionで作ったMacのIME
 
-![](https://gyazo.com/470039210d20405c14ab36afff5271bb.gif)
+![](https://gyazo.com/648245adc6252b716db7af9f7b2022ab.gif)
 
 * RubyMotionで実装したGyaim
 * Yosemiteを想定しているが古いMacOSでも動くかも
