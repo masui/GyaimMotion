@@ -34,7 +34,7 @@ Motion::Project::App.setup do |app|
   app.info_plist['LSApplicationCategoryType'] = "public.app-category.productivity"
   
   app.info_plist['LSBackgroundOnly'] = true
-  app.info_plist['NSMainNibFile'] = "MainMenu"
+  app.info_plist['NSMainNibFile'] = "Gyaim"
   app.info_plist['tsInputMethodIconFileKey'] = "icon.pdf"
   app.info_plist['CFBundleDevelopmentRegion'] = "English"
 
