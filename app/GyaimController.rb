@@ -319,7 +319,7 @@ class GyaimController < IMKInputController
         end
         if !File.exists?(imagepath) then
           imageorigpath = "#{DictFiles.imageDir}/#{w}.png"
-          system "/opt/local/bin/wget http://Gyazo.com/#{w}.png -O '#{imageorigpath}' > /dev/null >& /dev/null"
+          system "/usr/local/bin/wget http://Gyazo.com/#{w}.png -O '#{imageorigpath}' > /dev/null >& /dev/null"
           system "/bin/cp '#{imageorigpath}' '#{imagepath}'"
           system "/usr/bin/sips --resampleHeight 20 '#{imagepath}' > /dev/null >& /dev/null"
         end

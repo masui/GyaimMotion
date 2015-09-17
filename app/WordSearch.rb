@@ -5,7 +5,6 @@
 #
 # Copyright 2011-2015 Pitecan Systems. All rights reserved.
 #
-
 class WordSearch
   attr :searchmode, true
 
@@ -17,7 +16,7 @@ class WordSearch
     end
     if !downloaded[url] then
       begin
-        system "/opt/local/bin/wget #{url} -O #{DictFiles.cacheDir}/tmpimage > /dev/null >& /dev/null"
+        system "/usr/local/bin/wget #{url} -O #{DictFiles.cacheDir}/tmpimage > /dev/null >& /dev/null"
         system "sips -s format png #{DictFiles.cacheDir}/tmpimage --resampleHeight 100 --out #{DictFiles.cacheDir}/tmpimage.png > /dev/null >& /dev/null"
         # system "sips --resampleHeight 50 #{DictFiles.cacheDir}/tmpimage.png > /dev/null >& /dev/null"
         imagedata = File.read("#{DictFiles.cacheDir}/tmpimage.png")
