@@ -17,6 +17,17 @@ class GyaimController < IMKInputController
     @textview = CandTextView.candTextView
     @candwin = CandWindow.candWindow
 
+    #AFMotion::Image.get("https://gyazo.com/559310d07759016e2c9c89d14e333dde.png") do |result|
+    #  File.open("/tmp/junk.png","w"){ |f|
+    #    f.print result.body
+    #  }
+    #end
+    #AFMotion::HTTP.get("https://i.gyazo.com/559310d07759016e2c9c89d14e333dde.png") do |result|
+    #  File.open("/tmp/junk.png","w"){ |f|
+    #    f.print result.object
+    #  }
+    #end
+
     # 辞書サーチ
     dictpath = NSBundle.mainBundle.pathForResource("dict", ofType:"txt")
     if @ws.nil? then
@@ -319,7 +330,12 @@ class GyaimController < IMKInputController
         end
         if !File.exists?(imagepath) then
           imageorigpath = "#{DictFiles.imageDir}/#{w}.png"
-          system "/usr/local/bin/wget http://Gyazo.com/#{w}.png -O '#{imageorigpath}' > /dev/null >& /dev/null"
+          # system "/usr/local/bin/wget http://Gyazo.com/#{w}.png -O '#{imageorigpath}' > /dev/null >& /dev/null"
+          AFMotion::HTTP.get("https://i.gyazo.com/#{w}.png") do |result|
+            File.open(imageorigpath,"w"){ |f|
+              f.print result.object
+            }
+          end
           system "/bin/cp '#{imageorigpath}' '#{imagepath}'"
           system "/usr/bin/sips --resampleHeight 20 '#{imagepath}' > /dev/null >& /dev/null"
         end

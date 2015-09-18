@@ -16,7 +16,13 @@ class WordSearch
     end
     if !downloaded[url] then
       begin
-        system "/usr/local/bin/wget #{url} -O #{DictFiles.cacheDir}/tmpimage > /dev/null >& /dev/null"
+        # system "/usr/local/bin/wget #{url} -O #{DictFiles.cacheDir}/tmpimage > /dev/null >& /dev/null"
+        # url がmoved permanentlyとかじゃなければいいのだけど
+        AFMotion::HTTP.get(url) do |result|
+          File.open("#{DictFiles.cacheDir}/tmpimage","w"){ |f|
+            f.print result.object
+          }
+        end
         system "sips -s format png #{DictFiles.cacheDir}/tmpimage --resampleHeight 100 --out #{DictFiles.cacheDir}/tmpimage.png > /dev/null >& /dev/null"
         # system "sips --resampleHeight 50 #{DictFiles.cacheDir}/tmpimage.png > /dev/null >& /dev/null"
         imagedata = File.read("#{DictFiles.cacheDir}/tmpimage.png")
