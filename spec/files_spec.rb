@@ -5,16 +5,19 @@ describe "ファイルユティリティ" do
   end
 
   it "ファイルコピー" do
-    File.open("/tmp/junkspec","w"){ |f|
-      f.puts "abcdefg"
+    tmpfile1 = "/tmp/tmpfile#{$$}1"
+    tmpfile2 = "/tmp/tmpfile#{$$}2"
+    data = "test write data."
+    File.open(tmpfile1,"w"){ |f|
+      f.print data
     }
-    Files.copy("/tmp/junkspec","/tmp/junkspec1")
-    s = File.read("/tmp/junkspec1")
-    s.should == "abcdefg\n"
+    Files.copy tmpfile1, tmpfile2
+    File.read(tmpfile2).should == data
+    File.unlink tmpfile1, tmpfile2
   end
 
   it "touch" do
-    tmpfile = "/tmp/touchtest"
+    tmpfile = "/tmp/tmpfile#{$$}1"
     File.unlink tmpfile if File.exist?(tmpfile)
     File.exist?(tmpfile).should == false
     Files.touch tmpfile
