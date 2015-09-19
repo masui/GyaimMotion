@@ -17,17 +17,6 @@ class GyaimController < IMKInputController
     @textview = CandTextView.candTextView
     @candwin = CandWindow.candWindow
 
-    #AFMotion::Image.get("https://gyazo.com/559310d07759016e2c9c89d14e333dde.png") do |result|
-    #  File.open("/tmp/junk.png","w"){ |f|
-    #    f.print result.body
-    #  }
-    #end
-    #AFMotion::HTTP.get("https://i.gyazo.com/559310d07759016e2c9c89d14e333dde.png") do |result|
-    #  File.open("/tmp/junk.png","w"){ |f|
-    #    f.print result.object
-    #  }
-    #end
-
     # 辞書サーチ
     dictpath = NSBundle.mainBundle.pathForResource("dict", ofType:"txt")
     if @ws.nil? then
@@ -286,9 +275,9 @@ class GyaimController < IMKInputController
         Emulation.key(51) # delete
 
         # 画像をペーストボードに貼る
-        imagepath = "#{Files.cacheDir}/#{word}.png"
+        imagepath = "#{Config.cacheDir}/#{word}.png"
         if !File.exists?(imagepath) then
-          imagepath = "#{Files.imageDir}/#{word}.png"
+          imagepath = "#{Config.imageDir}/#{word}.png"
         end
         image = NSImage.alloc.initByReferencingFile(imagepath)
         imagedata = image.TIFFRepresentation
@@ -324,15 +313,14 @@ class GyaimController < IMKInputController
       w = @cands[@nthCand+1+i]
       break if w.nil?
       if imagecand?(w) then
-        imagepath = "#{Files.cacheDir}/#{w}s.png"
+        imagepath = "#{Config.cacheDir}/#{w}s.png"
         if !File.exists?(imagepath) then
-          imagepath = "#{Files.imageDir}/#{w}s.png"
+          imagepath = "#{Config.imageDir}/#{w}s.png"
         end
         if !File.exists?(imagepath) then
-          imageorigpath = "#{Files.imageDir}/#{w}.png"
-          Files.get("https://i.gyazo.com/#{w}.png",imageorigpath)
-          Files.copy(imageorigpath,imagepath)
-          # system "/usr/bin/sips --resampleHeight 20 '#{imagepath}' > /dev/null >& /dev/null"
+          imageorigpath = "#{Config.imageDir}/#{w}.png"
+          Files.get "https://i.gyazo.com/#{w}.png", imageorigpath
+          Files.copy imageorigpath, imagepath
           Files.resize 20, imagepath
         end
         image = NSImage.alloc.initByReferencingFile(imagepath)

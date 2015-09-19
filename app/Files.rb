@@ -10,37 +10,25 @@
 #
 
 class Files
-  def Files.gyaimDir
-    File.expand_path("~/.gyaim")
-  end
-
-  def Files.cacheDir
-    "#{gyaimDir}/cacheimages"
-  end
-
-  def Files.imageDir
-    "#{gyaimDir}/images"
-  end
-
-  def Files.localDictFile
-    "#{gyaimDir}/localdict.txt"
-  end
-
-  def Files.studyDictFile
-    "#{gyaimDir}/studydict.txt"
-  end
-
   def Files.copy(srcfile,dstfile)
-    open(srcfile){ |src|
-      open(dstfile,"w"){ |dst|
-        dst.write(src.read)
+    if File.exist?(srcfile) then
+      open(srcfile){ |src|
+        open(dstfile,"w"){ |dst|
+          dst.write(src.read)
+        }
       }
-    }
+    end
   end
 
   def Files.move(srcfile,dstfile)
-    copy(srcfile,dstfile)
-    File.unlink(srcfile)
+    if File.exist?(srcfile) then
+      copy(srcfile,dstfile)
+      File.unlink(srcfile)
+    end
+  end
+
+  def Files.touch(file)
+    File.open(file,"a"){ |f| f.print "" }
   end
 
   def Files.get(url,file)
