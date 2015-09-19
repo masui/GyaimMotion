@@ -7,24 +7,24 @@
 # Copyright 2011-15 Pitecan Systems. All rights reserved.
 #
 
-class DictFiles
-  def DictFiles.dictDir
+class Files
+  def Files.dictDir
     File.expand_path("~/.gyaimdict")
   end
 
-  def DictFiles.cacheDir
+  def Files.cacheDir
     "#{dictDir}/cacheimages"
   end
 
-  def DictFiles.imageDir
+  def Files.imageDir
     "#{dictDir}/images"
   end
 
-  def DictFiles.localDictFile
+  def Files.localDictFile
     "#{dictDir}/localdict.txt"
   end
 
-  def DictFiles.studyDictFile
+  def Files.studyDictFile
     "#{dictDir}/studydict.txt"
   end
 end

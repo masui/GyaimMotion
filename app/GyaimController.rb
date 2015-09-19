@@ -286,9 +286,9 @@ class GyaimController < IMKInputController
         Emulation.key(51) # delete
 
         # 画像をペーストボードに貼る
-        imagepath = "#{DictFiles.cacheDir}/#{word}.png"
+        imagepath = "#{Files.cacheDir}/#{word}.png"
         if !File.exists?(imagepath) then
-          imagepath = "#{DictFiles.imageDir}/#{word}.png"
+          imagepath = "#{Files.imageDir}/#{word}.png"
         end
         image = NSImage.alloc.initByReferencingFile(imagepath)
         imagedata = image.TIFFRepresentation
@@ -324,12 +324,12 @@ class GyaimController < IMKInputController
       w = @cands[@nthCand+1+i]
       break if w.nil?
       if imagecand?(w) then
-        imagepath = "#{DictFiles.cacheDir}/#{w}s.png"
+        imagepath = "#{Files.cacheDir}/#{w}s.png"
         if !File.exists?(imagepath) then
-          imagepath = "#{DictFiles.imageDir}/#{w}s.png"
+          imagepath = "#{Files.imageDir}/#{w}s.png"
         end
         if !File.exists?(imagepath) then
-          imageorigpath = "#{DictFiles.imageDir}/#{w}.png"
+          imageorigpath = "#{Files.imageDir}/#{w}.png"
           # system "/usr/local/bin/wget http://Gyazo.com/#{w}.png -O '#{imageorigpath}' > /dev/null >& /dev/null"
           AFMotion::HTTP.get("https://i.gyazo.com/#{w}.png") do |result|
             File.open(imageorigpath,"w"){ |f|
