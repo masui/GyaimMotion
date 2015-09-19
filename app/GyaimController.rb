@@ -330,14 +330,10 @@ class GyaimController < IMKInputController
         end
         if !File.exists?(imagepath) then
           imageorigpath = "#{Files.imageDir}/#{w}.png"
-          # system "/usr/local/bin/wget http://Gyazo.com/#{w}.png -O '#{imageorigpath}' > /dev/null >& /dev/null"
-          AFMotion::HTTP.get("https://i.gyazo.com/#{w}.png") do |result|
-            File.open(imageorigpath,"w"){ |f|
-              f.print result.object
-            }
-          end
-          system "/bin/cp '#{imageorigpath}' '#{imagepath}'"
-          system "/usr/bin/sips --resampleHeight 20 '#{imagepath}' > /dev/null >& /dev/null"
+          Files.get("https://i.gyazo.com/#{w}.png",imageorigpath)
+          Files.copy(imageorigpath,imagepath)
+          # system "/usr/bin/sips --resampleHeight 20 '#{imagepath}' > /dev/null >& /dev/null"
+          Files.resize 20, imagepath
         end
         image = NSImage.alloc.initByReferencingFile(imagepath)
 

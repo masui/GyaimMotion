@@ -18,18 +18,24 @@ class WordSearch
       begin
         # system "/usr/local/bin/wget #{url} -O #{Files.cacheDir}/tmpimage > /dev/null >& /dev/null"
         # url がmoved permanentlyとかじゃなければいいのだけど
-        AFMotion::HTTP.get(url) do |result|
-          File.open("#{Files.cacheDir}/tmpimage","w"){ |f|
-            f.print result.object
-          }
-        end
-        system "sips -s format png #{Files.cacheDir}/tmpimage --resampleHeight 100 --out #{Files.cacheDir}/tmpimage.png > /dev/null >& /dev/null"
+        #AFMotion::HTTP.get(url) do |result|
+        #  File.open("#{Files.cacheDir}/tmpimage","w"){ |f|
+        #    f.print result.object
+        #  }
+        #end
+        Files.get url, "#{Files.cacheDir}/tmpimage"
+        
         # system "sips --resampleHeight 50 #{Files.cacheDir}/tmpimage.png > /dev/null >& /dev/null"
+        # system "sips -s format png #{Files.cacheDir}/tmpimage --resampleHeight 100 --out #{Files.cacheDir}/tmpimage.png > /dev/null >& /dev/null"
+        Files.resize 100, "#{Files.cacheDir}/tmpimage", "#{Files.cacheDir}/tmpimage.png"
         imagedata = File.read("#{Files.cacheDir}/tmpimage.png")
         id = Digest::MD5.hexdigest(imagedata)
-        system "/bin/mv #{Files.cacheDir}/tmpimage.png #{Files.cacheDir}/#{id}.png"
-        system "/bin/cp #{Files.cacheDir}/#{id}.png #{Files.cacheDir}/#{id}s.png"
-        system "/usr/bin/sips --resampleHeight 20 #{Files.cacheDir}/#{id}s.png > /dev/null >& /dev/null"
+        # system "/bin/mv #{Files.cacheDir}/tmpimage.png #{Files.cacheDir}/#{id}.png"
+        Files.move "#{Files.cacheDir}/tmpimage.png", "#{Files.cacheDir}/#{id}.png"
+        # system "/bin/cp #{Files.cacheDir}/#{id}.png #{Files.cacheDir}/#{id}s.png"
+        Files.copy "#{Files.cacheDir}/#{id}.png", "#{Files.cacheDir}/#{id}s.png"
+        # system "/usr/bin/sips --resampleHeight 20 #{Files.cacheDir}/#{id}s.png > /dev/null >& /dev/null"
+        Files.resize 20, "#{Files.cacheDir}/#{id}s.png"
         downloaded[url] = id
       rescue
         res = false
