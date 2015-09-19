@@ -269,15 +269,17 @@ class GyaimController < IMKInputController
     word = @cands[@nthCand]
     if word then
       if imagecand?(word) then
+        gyazoID = word
+        
         # 入力中モードじゃなくするためのハック
         @client.insertText(' ',replacementRange:NSMakeRange(NSNotFound, NSNotFound))
         @bs_through = true
         Emulation.key(51) # delete
 
         # 画像をペーストボードに貼る
-        imagepath = "#{Config.cacheDir}/#{word}.png"
+        imagepath = "#{Config.cacheDir}/#{gyazoID}.png"
         if !File.exists?(imagepath) then
-          imagepath = "#{Config.imageDir}/#{word}.png"
+          imagepath = "#{Config.imageDir}/#{gyazoID}.png"
         end
         image = NSImage.alloc.initByReferencingFile(imagepath)
         imagedata = image.TIFFRepresentation
@@ -285,7 +287,7 @@ class GyaimController < IMKInputController
         pasteboard.clearContents
         pasteboard.declareTypes([NSPasteboardTypeTIFF, NSPasteboardTypeString],owner:nil)
         pasteboard.setData(imagedata,forType:NSTIFFPboardType)
-        pasteboard.setString("[[http://Gyazo.com/#{word}.png]]",forType:NSStringPboardType)
+        pasteboard.setString("[[http://Gyazo.com/#{gyazoID}.png]]",forType:NSStringPboardType)
 
         # 画像をペースト
         Emulation.key("v","command down") # Cmd-v を送る
@@ -313,15 +315,16 @@ class GyaimController < IMKInputController
       w = @cands[@nthCand+1+i]
       break if w.nil?
       if imagecand?(w) then
-        imagepath = "#{Config.cacheDir}/#{w}s.png"
+        gyazoID = w
+        imagepath = "#{Config.cacheDir}/#{gyazoID}s.png"
         if !File.exists?(imagepath) then
-          imagepath = "#{Config.imageDir}/#{w}s.png"
+          imagepath = "#{Config.imageDir}/#{gyazoID}s.png"
         end
         if !File.exists?(imagepath) then
-          imageorigpath = "#{Config.imageDir}/#{w}.png"
-          Files.get "https://i.gyazo.com/#{w}.png", imageorigpath
+          imageorigpath = "#{Config.imageDir}/#{gyazoID}.png"
+          Files.get "https://i.gyazo.com/#{gyazoID}.png", imageorigpath
           Files.copy imageorigpath, imagepath
-          Files.resize 20, imagepath
+          Image.resize 20, imagepath
         end
         image = NSImage.alloc.initByReferencingFile(imagepath)
 

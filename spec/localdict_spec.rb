@@ -6,8 +6,8 @@ describe "ローカル辞書セットアップ" do
 
   # it "localdict.txt が ~/.gyamdict の下にあること" do
   it "辞書が存在すること" do
-    File.exist?(Files.gyaimDir).should == true
-    File.exist?(Files.localDictFile).should == true
+    File.exist?(Config.gyaimDir).should == true
+    File.exist?(Config.localDictFile).should == true
   end
 end
 

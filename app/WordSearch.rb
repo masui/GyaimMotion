@@ -17,12 +17,12 @@ class WordSearch
     if !downloaded[url] then
       begin
         Files.get url, "#{Config.cacheDir}/tmpimage"
-        Files.resize 100, "#{Config.cacheDir}/tmpimage"
+        Image.resize 100, "#{Config.cacheDir}/tmpimage"
         imagedata = File.read("#{Config.cacheDir}/tmpimage.png")
         id = Digest::MD5.hexdigest(imagedata)
         Files.move "#{Config.cacheDir}/tmpimage.png", "#{Config.cacheDir}/#{id}.png"
         Files.copy "#{Config.cacheDir}/#{id}.png", "#{Config.cacheDir}/#{id}s.png"
-        Files.resize 20, "#{Config.cacheDir}/#{id}s.png"
+        Image.resize 20, "#{Config.cacheDir}/#{id}s.png"
         downloaded[url] = id
       rescue
         res = false

@@ -37,4 +37,3 @@ if __FILE__ == $0 && false then
   print pngdata
 end
 
-
