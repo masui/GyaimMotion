@@ -18,9 +18,9 @@ class WordSearch
       begin
         Files.get url, "#{Config.cacheDir}/tmpimage"
         Image.resize 100, "#{Config.cacheDir}/tmpimage"
-        imagedata = File.read("#{Config.cacheDir}/tmpimage.png")
+        imagedata = File.read("#{Config.cacheDir}/tmpimage")
         id = Digest::MD5.hexdigest(imagedata)
-        Files.move "#{Config.cacheDir}/tmpimage.png", "#{Config.cacheDir}/#{id}.png"
+        Files.move "#{Config.cacheDir}/tmpimage", "#{Config.cacheDir}/#{id}.png"
         Files.copy "#{Config.cacheDir}/#{id}.png", "#{Config.cacheDir}/#{id}s.png"
         Image.resize 20, "#{Config.cacheDir}/#{id}s.png"
         downloaded[url] = id
@@ -63,8 +63,6 @@ class WordSearch
     Dir.mkdir(Config.gyaimDir) unless File.exist?(Config.gyaimDir)
     Dir.mkdir(Config.cacheDir) unless File.exist?(Config.cacheDir)
     Dir.mkdir(Config.imageDir) unless File.exist?(Config.imageDir)
-    # File.open(Config.localDictFile,"w"){ |f| f.print "" } unless File.exist?(Config.localDictFile)
-    # File.open(Config.studyDictFile,"w"){ |f| f.print "" } unless File.exist?(Config.studyDictFile)
     Files.touch(Config.localDictFile)
     Files.touch(Config.studyDictFile)
 
