@@ -9,7 +9,7 @@
 
 class Files
   def Files.gyaimDir
-    File.expand_path("~/.gyaimdict")
+    File.expand_path("~/.gyaim")
   end
 
   def Files.cacheDir
