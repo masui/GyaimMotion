@@ -67,7 +67,7 @@ class WordSearch
   # dict = "../Resources/dict.txt"
   def initialize(dictfile)
     @searchmode = 0
-    Dir.mkdir(Files.dictDir) unless File.exist?(Files.dictDir)
+    Dir.mkdir(Files.gyaimDir) unless File.exist?(Files.gyaimDir)
     Dir.mkdir(Files.cacheDir) unless File.exist?(Files.cacheDir)
     Dir.mkdir(Files.imageDir) unless File.exist?(Files.imageDir)
     File.open(Files.localDictFile,"w"){ |f| f.print "" } unless File.exist?(Files.localDictFile)

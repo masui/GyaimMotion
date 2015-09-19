@@ -8,24 +8,24 @@
 #
 
 class Files
-  def Files.dictDir
+  def Files.gyaimDir
     File.expand_path("~/.gyaimdict")
   end
 
   def Files.cacheDir
-    "#{dictDir}/cacheimages"
+    "#{gyaimDir}/cacheimages"
   end
 
   def Files.imageDir
-    "#{dictDir}/images"
+    "#{gyaimDir}/images"
   end
 
   def Files.localDictFile
-    "#{dictDir}/localdict.txt"
+    "#{gyaimDir}/localdict.txt"
   end
 
   def Files.studyDictFile
-    "#{dictDir}/studydict.txt"
+    "#{gyaimDir}/studydict.txt"
   end
 end
 
