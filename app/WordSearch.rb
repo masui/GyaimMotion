@@ -6,15 +6,14 @@
 # Copyright 2011-2015 Pitecan Systems. All rights reserved.
 #
 class WordSearch
-  # dict = NSBundle.mainBundle.pathForResource("dict", ofType:"txt")
-  # dict = "../Resources/dict.txt"
+  #
+  # 辞書初期化
+  #
+  Dir.mkdir(Config.gyaimDir) unless File.exist?(Config.gyaimDir)
+  Files.touch(Config.localDictFile)
+  Files.touch(Config.studyDictFile)
+  
   def initialize(dictfile)
-    Dir.mkdir(Config.gyaimDir) unless File.exist?(Config.gyaimDir)
-    Dir.mkdir(Config.cacheDir) unless File.exist?(Config.cacheDir)
-    Dir.mkdir(Config.imageDir) unless File.exist?(Config.imageDir)
-    Files.touch(Config.localDictFile)
-    Files.touch(Config.studyDictFile)
-
     # 固定辞書初期化
     @cd = ConnectionDict.new(dictfile)
 

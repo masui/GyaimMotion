@@ -7,6 +7,13 @@
 #
 
 class Image
+  #
+  # 画像ディレクトリ初期化
+  #
+  Dir.mkdir(Config.gyaimDir) unless File.exist?(Config.gyaimDir)
+  Dir.mkdir(Config.cacheDir) unless File.exist?(Config.cacheDir)
+  Dir.mkdir(Config.imageDir) unless File.exist?(Config.imageDir)
+  
   def Image.resize(size,src,dst=nil)
     if dst then
       system "sips -s format png #{src} --resampleHeight #{size} --out #{dst} > /dev/null >& /dev/null"
