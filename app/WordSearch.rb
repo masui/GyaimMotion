@@ -40,7 +40,9 @@ class WordSearch
       # Google.searchCands()は非同期関数なので、実際にはその中で
       # showCandsが呼ばれる.
       candidates = Google.searchCands(q)
-    elsif q =~ /^(.*)\#$/ then
+    elsif q =~ /^\#(.*)$/ then
+      #color = $1
+      #Image.generatePNG("#{Config.imageDir}/#{id}.png",color,40,40)
       #
       # 色指定
       #

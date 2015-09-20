@@ -67,4 +67,10 @@ describe "画像関連" do
     file.should.match /100 x 100/
     File.unlink  "/tmp/100x100.png", "/tmp/10x10.png"
   end
+
+  it "PNGイメージ生成" do
+    Image.generatePNG("/tmp/junk.png","yellow",10,20)
+    file = `file /tmp/junk.png`
+    file.should.match /10 x 20/
+  end
 end

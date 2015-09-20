@@ -15,6 +15,11 @@ class Image
     end
   end
 
+  def Image.generatePNG(file,color,width,height)
+    # convert -size 256x256 "xc:#FF6600" yellow.png
+    system "convert -size #{width}x#{height} 'xc:#{color}' '#{file}'"
+  end
+
   def Image.pasteGyazoToTextView(gyazoID,textview)
     imagepath = "#{Config.cacheDir}/#{gyazoID}s.png"
     if !File.exists?(imagepath) then
