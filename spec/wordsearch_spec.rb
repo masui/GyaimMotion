@@ -9,8 +9,12 @@ describe "WordSearch" do
     @studydict = "/tmp/studydict.txt"
     File.unlink @localdict if File.exist? @localdict
     File.unlink @studydict if File.exist? @studydict
+    File.exist?(@localdict).should == false
+    File.exist?(@studydict).should == false
     File.open(@localdict,"w"){ |f| f.print "" }
     File.open(@studydict,"w"){ |f| f.print "" }
+    File.exist?(@localdict).should == true
+    File.exist?(@studydict).should == true
     @connectiondict = NSBundle.mainBundle.pathForResource("dict", ofType:"txt")
     @ws = WordSearch.new @connectiondict, @localdict, @studydict
   end
