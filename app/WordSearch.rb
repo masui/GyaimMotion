@@ -6,8 +6,6 @@
 # Copyright 2011-2015 Pitecan Systems. All rights reserved.
 #
 class WordSearch
-  attr :searchmode, true
-
   def downloadImage(url)
     downloaded = {}
     marshalfile = "#{Config.cacheDir}/downloaded"
@@ -59,7 +57,6 @@ class WordSearch
   # dict = NSBundle.mainBundle.pathForResource("dict", ofType:"txt")
   # dict = "../Resources/dict.txt"
   def initialize(dictfile)
-    @searchmode = 0
     Dir.mkdir(Config.gyaimDir) unless File.exist?(Config.gyaimDir)
     Dir.mkdir(Config.cacheDir) unless File.exist?(Config.cacheDir)
     Dir.mkdir(Config.imageDir) unless File.exist?(Config.imageDir)
@@ -77,7 +74,8 @@ class WordSearch
     @studydict = loadDict(Config.studyDictFile)
   end
 
-  def search(q,limit=10)
+  def search(q,searchmode,limit=10)
+    @searchmode = searchmode
     # @searchmode=0のとき前方マッチ, @searchmode=1のとき完全マッチとする
 
     return if q.nil? || q == ''
@@ -294,8 +292,8 @@ end
 
 if __FILE__ == $0 && nil then
   ws = WordSearch.new("/Users/masui/Gyaim/Resources/dict.txt")
-  ws.search("masui")
+  ws.search("masui",0)
   puts ws.candidates
-  ws.search("kanj")
+  ws.search("kanj",0)
   puts ws.candidates
 end

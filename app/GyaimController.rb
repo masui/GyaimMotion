@@ -8,7 +8,6 @@
 #
 
 class GyaimController < IMKInputController
-  #@ws = nil
   @@gc = nil
 
   def initWithServer(server, delegate:d, client:c)
@@ -51,7 +50,7 @@ class GyaimController < IMKInputController
     @inputPat = ""
     @candidates = []
     @nthCand = 0
-    @ws.searchmode = 0
+    @searchmode = 0
     @selectedstr = nil
   end
 
@@ -141,11 +140,11 @@ class GyaimController < IMKInputController
           resetState
           return true
         end
-        if @ws.searchmode > 0 then
+        if @searchmode > 0 then
           fix
         else
           if @nthCand == 0 then
-            @ws.searchmode = 1
+            @searchmode = 1
             searchAndShowCands
           else
             fix
@@ -154,10 +153,10 @@ class GyaimController < IMKInputController
         handled = true
       end
     elsif c >= 0x21 && c <= 0x7e && (modifierFlags & (NSControlKeyMask|NSCommandKeyMask|NSAlternateKeyMask)) == 0 then
-      fix if @nthCand > 0 || @ws.searchmode > 0
+      fix if @nthCand > 0 || @searchmode > 0
       @inputPat += eventString
       searchAndShowCands
-      @ws.searchmode = 0
+      @searchmode = 0
       handled = true
     end
 
@@ -180,11 +179,11 @@ class GyaimController < IMKInputController
     #
     # WordSearch#search で検索して WordSearch#candidates で受け取る
     #
-    # @ws.searchmode == 0 前方マッチ
-    # @ws.searchmode == 1 完全マッチ ひらがな/カタカナも候補に加える
+    # @searchmode == 0 前方マッチ
+    # @searchmode == 1 完全マッチ ひらがな/カタカナも候補に加える
     #
-    if @ws.searchmode > 0 then
-      @ws.search(@inputPat)
+    if @searchmode == 1 then
+      @ws.search(@inputPat,@searchmode)
       @candidates = @ws.candidates
       katakana = @inputPat.roma2katakana
       if katakana != "" then
@@ -197,7 +196,7 @@ class GyaimController < IMKInputController
         @candidates.unshift(hiragana)
       end
     else
-      @ws.search(@inputPat)
+      @ws.search(@inputPat,@searchmode)
       @candidates = @ws.candidates
       @candidates.unshift(@selectedstr) if @selectedstr && @selectedstr != ''
       @candidates.unshift(@inputPat)
