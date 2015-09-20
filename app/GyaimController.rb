@@ -8,6 +8,8 @@
 #
 
 class GyaimController < IMKInputController
+  attr :candidates, true
+  
   @@gc = nil
 
   def initWithServer(server, delegate:d, client:c)
@@ -256,10 +258,10 @@ class GyaimController < IMKInputController
     #
     # 選択中の単語をキャレット位置にアンダーライン表示
     #
-    @cands = @candidates.collect { |e|
+    cands = @candidates.collect { |e|
       wordpart(e)
     }
-    word = @cands[@nthCand]
+    word = cands[@nthCand]
     if word then
       if imagecand?(word) then
         #gyazoID = word
@@ -295,7 +297,7 @@ class GyaimController < IMKInputController
     # @textview.setString(@cands[@nthCand+1 .. @nthCand+1+10].join(' '))
     @textview.setString('')
     (0..10).each { |i|
-      cand = @cands[@nthCand+1+i]
+      cand = cands[@nthCand+1+i]
       break if cand.nil?
       if imagecand?(cand) then
         Image.pasteGyazoToTextView(cand,@textview)
@@ -327,7 +329,8 @@ class GyaimController < IMKInputController
     NSApp.hide(self)
   end
 
-  def GyaimController.showCands
+  def GyaimController.showCands(candidates)
+    @@gc.candidates = candidates
     @@gc.showCands
   end
 end

@@ -6,28 +6,6 @@
 # Copyright 2011-2015 Pitecan Systems. All rights reserved.
 #
 class WordSearch
-  #
-  # Google画像検索
-  #
-  def searchGoogleImages(q)
-    ids = []
-    server = 'ajax.googleapis.com'
-    command = "/ajax/services/search/images?q=#{q}&v=1.0&rsz=large&start=1"
-    Net::HTTP.start(server, 80) {|http|
-      response = http.get(command)
-      json = BubbleWrap::JSON.parse(response.body)
-      images = json['responseData']['results']
-      images.each { |image|
-        url = image['url']
-        if id = Image.downloadImage(url) then
-          ids << id
-        end
-      }
-    }
-    puts ids
-    ids
-  end
-
   # dict = NSBundle.mainBundle.pathForResource("dict", ofType:"txt")
   # dict = "../Resources/dict.txt"
   def initialize(dictfile)
@@ -36,6 +14,8 @@ class WordSearch
     Dir.mkdir(Config.imageDir) unless File.exist?(Config.imageDir)
     Files.touch(Config.localDictFile)
     Files.touch(Config.studyDictFile)
+
+    @candidates = []
 
     # 固定辞書初期化
     @cd = ConnectionDict.new(dictfile)
@@ -63,33 +43,8 @@ class WordSearch
     @candidates = []
 
     if q.length > 1 && q.sub!(/\.$/,'') then
-      # パタンの最後にピリオドが入力されたらGoogle Suggestを検索
-      registered = {}
-      words = []
-
-      # Google Suggest API ... 何度も使ってると拒否られるようになった
-      #Net::HTTP.start('google.co.jp', 80) {|http|
-      #  response = http.get("/complete/search?output=toolbar&hl=ja&q=#{q}",header)
-      #  s = response.body.to_s
-      #  s = NKF.nkf('-w',s)
-      #  while s.sub!(/data="([^"]*)"\/>/,'') do
-      #    word = $1.split[0]
-      #    if !candfound[word] then
-      #      candfound[word] = 1
-      #      @candidates << word
-      #    end
-      #  end
-      #}
-
-      AFMotion::JSON.get("http://google.com/transliterate", {langpair: "ja-Hira|ja", text: q.roma2hiragana}) do |result|
-        result.object[0][1].each { |candword|
-          if !candfound[candword] then
-            candfound[candword] = 1
-            @candidates << candword
-          end
-        }
-        GyaimController.showCands # AFMotionが非同期なのでここで更新!
-      end
+      # パタンの最後にピリオドが入力されたらGoogle検索
+      @candidates = Google.searchCands(q)
     elsif q =~ /^(.*)\#$/ then
       #
       # 色指定
@@ -113,10 +68,7 @@ class WordSearch
         @candidates << id
       end
     elsif q =~ /^(.+)!$/ then
-      #
-      # Google画像検索
-      #
-      ids = searchGoogleImages($1)
+      ids = Google.searchImages($1)
       ids.each { |id|
         @candidates << id
       }
