@@ -43,7 +43,9 @@ class WordSearch
     @candidates = []
 
     if q.length > 1 && q.sub!(/\.$/,'') then
-      # パタンの最後にピリオドが入力されたらGoogle検索
+      # パタンの最後にピリオドが入力されたらGoogle検索.
+      # Google.searchCands()は非同期関数なので、実際にはその中で
+      # showCandsが呼ばれる.
       @candidates = Google.searchCands(q)
     elsif q =~ /^(.*)\#$/ then
       #

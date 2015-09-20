@@ -5,6 +5,9 @@
 # Copyright 2011-2015 Pitecan Systems. All rights reserved.
 #
 class Google
+  #
+  # Google日本語変換
+  #
   def Google.searchCands(q)
     candidates = []
     AFMotion::JSON.get("http://google.com/transliterate", {langpair: "ja-Hira|ja", text: q.roma2hiragana}) do |result|
@@ -17,7 +20,7 @@ class Google
       }
       GyaimController.showCands(candidates) # AFMotionが非同期なのでここで更新!
     end
-    candidates # ダミー
+    candidates # ダミー (たぶん空配列が返る)
   end
   
   #
