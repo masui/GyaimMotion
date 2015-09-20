@@ -44,24 +44,24 @@ class WordSearch
       #
       # 色指定
       #
-      color = $1
-      if color =~ /^([0-9a-f][0-9a-f])([0-9a-f][0-9a-f])([0-9a-f][0-9a-f])$/ then
-        r = $1.hex
-        g = $2.hex
-        b = $3.hex
-        data = [[[r,g,b]] * 40] * 40
-        pnglarge = PNG.png(data)
-        data = [[[r,g,b]] * 20] * 20
-        pngsmall = PNG.png(data)
-        id = Digest::MD5.hexdigest(pnglarge)
-        File.open("#{Config.imageDir}/#{id}.png","w"){ |f|
-          f.print pnglarge
-        }
-        File.open("#{Config.imageDir}/#{id}s.png","w"){ |f|
-          f.print pngsmall
-        }
-        candidates << id
-      end
+      #color = $1
+      #if color =~ /^([0-9a-f][0-9a-f])([0-9a-f][0-9a-f])([0-9a-f][0-9a-f])$/ then
+      #  r = $1.hex
+      #  g = $2.hex
+      #  b = $3.hex
+      #  data = [[[r,g,b]] * 40] * 40
+      #  pnglarge = PNG.png(data)
+      #  data = [[[r,g,b]] * 20] * 20
+      #  pngsmall = PNG.png(data)
+      #  id = Digest::MD5.hexdigest(pnglarge)
+      #  File.open("#{Config.imageDir}/#{id}.png","w"){ |f|
+      #    f.print pnglarge
+      #  }
+      #  File.open("#{Config.imageDir}/#{id}s.png","w"){ |f|
+      #    f.print pngsmall
+      #  }
+      #  candidates << id
+      #end
     elsif q =~ /^(.+)!$/ then
       ids = Google.searchImages($1)
       ids.each { |id|
