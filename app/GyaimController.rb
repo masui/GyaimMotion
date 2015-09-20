@@ -11,8 +11,10 @@ class GyaimController < IMKInputController
   @@gc = nil
 
   def initWithServer(server, delegate:d, client:c)
-    @client = c   # Lexierraではこれをnilにしてた。何故?
-
+    @client = c
+    #
+    # RubyMotionでIBとの関連づけがうまくいかないので
+    #
     @textview = CandTextView.candTextView
     @candwin = CandWindow.candWindow
 
@@ -260,7 +262,7 @@ class GyaimController < IMKInputController
     word = @cands[@nthCand]
     if word then
       if imagecand?(word) then
-        gyazoID = word
+        #gyazoID = word
         
         # 入力中モードじゃなくするためのハック
         @client.insertText(' ',replacementRange:NSMakeRange(NSNotFound, NSNotFound))
@@ -268,18 +270,8 @@ class GyaimController < IMKInputController
         Emulation.key(51) # delete
 
         # 画像をペーストボードに貼る
-        imagepath = "#{Config.cacheDir}/#{gyazoID}.png"
-        if !File.exists?(imagepath) then
-          imagepath = "#{Config.imageDir}/#{gyazoID}.png"
-        end
-        image = NSImage.alloc.initByReferencingFile(imagepath)
-        imagedata = image.TIFFRepresentation
-        pasteboard = NSPasteboard.generalPasteboard
-        pasteboard.clearContents
-        pasteboard.declareTypes([NSPasteboardTypeTIFF, NSPasteboardTypeString],owner:nil)
-        pasteboard.setData(imagedata,forType:NSTIFFPboardType)
-        pasteboard.setString("[[http://Gyazo.com/#{gyazoID}.png]]",forType:NSStringPboardType)
-
+        Image.pasteGyazoToPasteboard(word)
+        
         # 画像をペースト
         Emulation.key("v","command down") # Cmd-v を送る
 
@@ -303,33 +295,12 @@ class GyaimController < IMKInputController
     # @textview.setString(@cands[@nthCand+1 .. @nthCand+1+10].join(' '))
     @textview.setString('')
     (0..10).each { |i|
-      w = @cands[@nthCand+1+i]
-      break if w.nil?
-      if imagecand?(w) then
-        gyazoID = w
-        imagepath = "#{Config.cacheDir}/#{gyazoID}s.png"
-        if !File.exists?(imagepath) then
-          imagepath = "#{Config.imageDir}/#{gyazoID}s.png"
-        end
-        if !File.exists?(imagepath) then
-          imageorigpath = "#{Config.imageDir}/#{gyazoID}.png"
-          Files.get "https://i.gyazo.com/#{gyazoID}.png", imageorigpath
-          Files.copy imageorigpath, imagepath
-          Image.resize 20, imagepath
-        end
-        image = NSImage.alloc.initByReferencingFile(imagepath)
-
-        url = NSURL.fileURLWithPath(imagepath,false)
-        wrap = NSFileWrapper.alloc.initWithURL(url,options:0,error:nil)
-        attachment = NSTextAttachment.alloc.initWithFileWrapper(wrap)
-        attachChar = NSAttributedString.attributedStringWithAttachment(attachment)
-        attrString = @textview.textStorage
-        attrString.beginEditing
-        attrString.insertAttributedString(attachChar,atIndex:attrString.string.length)
-        attrString.endEditing
-#        @textview.textStorage.setAttributedString(attrString)
+      cand = @cands[@nthCand+1+i]
+      break if cand.nil?
+      if imagecand?(cand) then
+        Image.pasteGyazoToTextView(cand,@textview)
       else
-        @textview.insertText(w)
+        @textview.insertText(cand)
       end
       @textview.insertText(' ')
     }

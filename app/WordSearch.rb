@@ -6,34 +6,8 @@
 # Copyright 2011-2015 Pitecan Systems. All rights reserved.
 #
 class WordSearch
-  def downloadImage(url)
-    downloaded = {}
-    marshalfile = "#{Config.cacheDir}/downloaded"
-    if File.exist?(marshalfile) then
-      downloaded = Marshal.load(File.read(marshalfile))
-    end
-    if !downloaded[url] then
-      begin
-        Files.get url, "#{Config.cacheDir}/tmpimage"
-        Image.resize 100, "#{Config.cacheDir}/tmpimage"
-        imagedata = File.read("#{Config.cacheDir}/tmpimage")
-        id = Digest::MD5.hexdigest(imagedata)
-        Files.move "#{Config.cacheDir}/tmpimage", "#{Config.cacheDir}/#{id}.png"
-        Files.copy "#{Config.cacheDir}/#{id}.png", "#{Config.cacheDir}/#{id}s.png"
-        Image.resize 20, "#{Config.cacheDir}/#{id}s.png"
-        downloaded[url] = id
-      rescue
-        res = false
-      end
-    end
-    File.open(marshalfile,"w"){ |f|
-      f.print Marshal.dump(downloaded)
-    }
-    downloaded[url]
-  end
-  
   #
-  # Google検索
+  # Google画像検索
   #
   def searchGoogleImages(q)
     ids = []
@@ -45,7 +19,7 @@ class WordSearch
       images = json['responseData']['results']
       images.each { |image|
         url = image['url']
-        if id = downloadImage(url) then
+        if id = Image.downloadImage(url) then
           ids << id
         end
       }
