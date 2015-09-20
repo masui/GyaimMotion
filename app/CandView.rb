@@ -1,3 +1,4 @@
+# coding: utf-8
 #
 # Created by Toshiyuki Masui on 2011/3/15.
 # Modified by Toshiyuki Masui on 2015/9/8.
@@ -6,6 +7,9 @@
 #
 class CandView < NSView
   def drawRect(rect)
+    #
+    # GyaimのウィンドウPNGを表示する
+    #
     mainBundle = NSBundle.mainBundle
     image = NSImage.alloc.initByReferencingFile(mainBundle.pathForResource("candwin",ofType:"png"))
     image.compositeToPoint(NSZeroPoint,operation:NSCompositeSourceOver)
