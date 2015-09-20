@@ -168,12 +168,6 @@ class GyaimController < IMKInputController
     e.class == String ? e : e[0]
   end
   
-  def delete(a,s)
-    a.find_all { |e|
-      wordpart(e) != s
-    }
-  end
-
   # 単語検索して候補の配列作成
   def searchAndShowCands
     #
@@ -187,12 +181,12 @@ class GyaimController < IMKInputController
       @candidates = @ws.candidates
       katakana = @inputPat.roma2katakana
       if katakana != "" then
-        @candidates = delete(@candidates,katakana)
+        @candidates = @candidates.find_all { |e| wordpart(e) != katakana }
         @candidates.unshift(katakana)
       end
       hiragana = @inputPat.roma2hiragana
       if hiragana != "" then
-        @candidates = delete(@candidates,hiragana)
+        @candidates = @candidates.find_all { |e| wordpart(e) != hiragana }
         @candidates.unshift(hiragana)
       end
     else
