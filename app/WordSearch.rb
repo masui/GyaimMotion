@@ -15,8 +15,6 @@ class WordSearch
     Files.touch(Config.localDictFile)
     Files.touch(Config.studyDictFile)
 
-    @candidates = []
-
     # 固定辞書初期化
     @cd = ConnectionDict.new(dictfile)
 
@@ -40,13 +38,13 @@ class WordSearch
     end
 
     candfound = {}
-    @candidates = []
+    candidates = []
 
     if q.length > 1 && q.sub!(/\.$/,'') then
       # パタンの最後にピリオドが入力されたらGoogle検索.
       # Google.searchCands()は非同期関数なので、実際にはその中で
       # showCandsが呼ばれる.
-      @candidates = Google.searchCands(q)
+      candidates = Google.searchCands(q)
     elsif q =~ /^(.*)\#$/ then
       #
       # 色指定
@@ -67,15 +65,15 @@ class WordSearch
         File.open("#{Config.imageDir}/#{id}s.png","w"){ |f|
           f.print pngsmall
         }
-        @candidates << id
+        candidates << id
       end
     elsif q =~ /^(.+)!$/ then
       ids = Google.searchImages($1)
       ids.each { |id|
-        @candidates << id
+        candidates << id
       }
     elsif q == "ds" then # TimeStamp or DateStamp(?)
-      @candidates << Time.now.strftime('%Y/%m/%d %H:%M:%S')
+      candidates << Time.now.strftime('%Y/%m/%d %H:%M:%S')
     elsif q.length > 1 && q =~ /^(.*)\?$/ then  # 個人辞書の中から暗号化された単語だけ抽出
       pat = $1
       @localdict.each { |entry|
@@ -86,16 +84,16 @@ class WordSearch
             # decryptしたバイト列が漢字だとうまくいかない...★★修正必要
             word = Crypt.decrypt(word,pat)
             if word then
-              @candidates << [word, yomi]
+              candidates << [word, yomi]
               candfound[word] = true
-              break if @candidates.length > limit
+              break if candidates.length > limit
             end
           end
         end
       }
     elsif q =~ /[A-Z]/ then
       # 読みが大文字を含む場合は候補に入れる
-      @candidates << [q, q]
+      candidates << [q, q]
     else
       # 普通に検索
       qq = q.gsub(/[\.\{\}\[\]\(\)]/){ '\\' + $& }
@@ -107,9 +105,9 @@ class WordSearch
         word = entry[1]
         if pat.match(yomi) then
           if !candfound[word] then
-            @candidates << [word, yomi]
+            candidates << [word, yomi]
             candfound[word] = true
-            break if @candidates.length > limit
+            break if candidates.length > limit
           end
         end
       }
@@ -118,13 +116,13 @@ class WordSearch
         next if word =~ /\*$/
         word.gsub!(/\*/,'')
         if !candfound[word] then
-          @candidates << [word, pat]
+          candidates << [word, pat]
           candfound[word] = true
-          break if @candidates.length > limit
+          break if candidates.length > limit
         end
       }
     end
-    @candidates
+    candidates
   end
 
   #
