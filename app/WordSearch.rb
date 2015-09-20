@@ -196,9 +196,6 @@ class WordSearch
         end
       }
     end
-  end
-  
-  def candidates
     @candidates
   end
 
@@ -292,8 +289,6 @@ end
 
 if __FILE__ == $0 && nil then
   ws = WordSearch.new("/Users/masui/Gyaim/Resources/dict.txt")
-  ws.search("masui",0)
-  puts ws.candidates
-  ws.search("kanj",0)
-  puts ws.candidates
+  puts ws.search("masui",0)
+  puts ws.search("kanj",0)
 end

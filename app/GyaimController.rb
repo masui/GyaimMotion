@@ -177,8 +177,7 @@ class GyaimController < IMKInputController
     # @searchmode == 1 完全マッチ ひらがな/カタカナも候補に加える
     #
     if @searchmode == 1 then
-      @ws.search(@inputPat,@searchmode)
-      @candidates = @ws.candidates
+      @candidates = @ws.search(@inputPat,@searchmode)
       katakana = @inputPat.roma2katakana
       if katakana != "" then
         @candidates = @candidates.find_all { |e| wordpart(e) != katakana }
@@ -190,8 +189,7 @@ class GyaimController < IMKInputController
         @candidates.unshift(hiragana)
       end
     else
-      @ws.search(@inputPat,@searchmode)
-      @candidates = @ws.candidates
+      @candidates = @ws.search(@inputPat,@searchmode)
       @candidates.unshift(@selectedstr) if @selectedstr && @selectedstr != ''
       @candidates.unshift(@inputPat)
       if @candidates.length < 8 then
