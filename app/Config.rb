@@ -27,6 +27,9 @@ class Config
     "#{gyaimDir}/studydict.txt"
   end
 
+  #
+  # ここに書くのが良いのか全然わからないが確実な感じはする (2015/09/20 21:37:17)
+  #
   Dir.mkdir(Config.gyaimDir) unless File.exist?(Config.gyaimDir)
   Dir.mkdir(Config.cacheDir) unless File.exist?(Config.cacheDir)
   Dir.mkdir(Config.imageDir) unless File.exist?(Config.imageDir)
