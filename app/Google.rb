@@ -11,13 +11,13 @@ class Google
   def Google.searchCands(q)
     candidates = []
     AFMotion::JSON.get("http://google.com/transliterate", {langpair: "ja-Hira|ja", text: q.roma2hiragana}) do |result|
-      result.object[0][1].each { |candword|
-        #if !candfound[candword] then
-        #  candfound[candword] = 1
-        #  @candidates << candword
-        #end
-        candidates << candword
-      }
+      candidates = result.object[0][1].uniq
+      #  #if !candfound[candword] then
+      #  #  candfound[candword] = 1
+      #  #  @candidates << candword
+      #  #end
+      #  candidates << candword
+      #}
       GyaimController.showCands(candidates) # AFMotionが非同期なのでここで更新!
     end
     candidates # ダミー (たぶん空配列が返る)

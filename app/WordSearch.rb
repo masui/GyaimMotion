@@ -32,7 +32,7 @@ class WordSearch
     @searchmode = searchmode
     # @searchmode=0のとき前方マッチ, @searchmode=1のとき完全マッチとする
 
-    return if q.nil? || q == ''
+    return [] if q.nil? || q == ''
 
     # 別システムによりlocalDictが更新されたときは読み直す
     if File.mtime(Config.localDictFile) > @localdicttime then
