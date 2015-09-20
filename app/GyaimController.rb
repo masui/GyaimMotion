@@ -21,9 +21,9 @@ class GyaimController < IMKInputController
     @candwin = CandWindow.candWindow
 
     # 辞書サーチ
-    dictpath = NSBundle.mainBundle.pathForResource("dict", ofType:"txt")
+    connectionDictFile = NSBundle.mainBundle.pathForResource("dict", ofType:"txt")
     if @ws.nil? then
-      @ws = WordSearch.new(dictpath)
+      @ws = WordSearch.new(connectionDictFile, Config.localDictFile, Config.studyDictFile)
     end
 
     resetState

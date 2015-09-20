@@ -1,4 +1,3 @@
-
 # -*- coding: utf-8 -*-
 #
 # Config.rb
@@ -27,5 +26,12 @@ class Config
   def Config.studyDictFile
     "#{gyaimDir}/studydict.txt"
   end
+
+  Dir.mkdir(Config.gyaimDir) unless File.exist?(Config.gyaimDir)
+  Dir.mkdir(Config.cacheDir) unless File.exist?(Config.cacheDir)
+  Dir.mkdir(Config.imageDir) unless File.exist?(Config.imageDir)
+  Files.touch(Config.localDictFile)
+  Files.touch(Config.studyDictFile)
+  
 end
 

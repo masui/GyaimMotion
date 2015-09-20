@@ -1,8 +1,6 @@
 # coding: utf-8
 # http://d.hatena.ne.jp/ku-ma-me/20091003/p1
 
-# require "zlib"
-
 class PNG
   def PNG.chunk(type, data)
     [data.bytesize, type, data, Zlib.crc32(type + data)].pack("NA4A*N")

@@ -6,34 +6,30 @@
 # Copyright 2011-2015 Pitecan Systems. All rights reserved.
 #
 class WordSearch
-  #
-  # 辞書初期化
-  #
-  Dir.mkdir(Config.gyaimDir) unless File.exist?(Config.gyaimDir)
-  Files.touch(Config.localDictFile)
-  Files.touch(Config.studyDictFile)
-  
-  def initialize(dictfile)
-    # 固定辞書初期化
-    @cd = ConnectionDict.new(dictfile)
+  def initialize(connectionDictFile, localDictFile, studyDictFile)
+    @connectionDictFile = connectionDictFile # 接続辞書
+    @localDictFile = localDictFile           # 個人用ローカル辞書
+    @studyDictFile = studyDictFile           # 学習辞書
+    
+    # 固定辞書(接続辞書)初期化
+    @cd = ConnectionDict.new(connectionDictFile)
 
     # 個人辞書を読出し
-    @localdict = loadDict(Config.localDictFile)
-    @localdicttime = File.mtime(Config.localDictFile)
+    @localdict = loadDict(localDictFile)
+    @localdicttime = File.mtime(localDictFile)
 
     # 学習辞書を読出し
-    @studydict = loadDict(Config.studyDictFile)
+    @studydict = loadDict(studyDictFile)
   end
 
   def search(q,searchmode,limit=10)
-    @searchmode = searchmode
-    # @searchmode=0のとき前方マッチ, @searchmode=1のとき完全マッチとする
+    @searchmode = searchmode  # @searchmode=0のとき前方マッチ, @searchmode=1のとき完全マッチ
 
     return [] if q.nil? || q == ''
 
     # 別システムによりlocalDictが更新されたときは読み直す
-    if File.mtime(Config.localDictFile) > @localdicttime then
-      @localdict = loadDict(Config.localDictFile)
+    if File.mtime(@localDictFile) > @localdicttime then
+      @localdict = loadDict(@localDictFile)
     end
 
     candfound = {}
@@ -128,20 +124,17 @@ class WordSearch
   # ユーザ辞書登録
   #
   def register(word,yomi)
-    puts "register(#{word},#{yomi})"
-    if !@localdict.index([yomi,word]) then
-      @localdict.unshift([yomi,word])
-      saveDict(Config.localDictFile,@localdict)
-      @localdicttime = File.mtime(Config.localDictFile)
-    end
+    @localdict.delete [yomi,word]
+    @localdict.unshift [yomi,word]
+    saveDict @localDictFile, @localdict
+    @localdicttime = File.mtime @localDictFile
   end
 
   #
   # 学習辞書の扱い
   #
   def study(word,yomi)
-    # puts "study(#{word},#{yomi})"
-    if yomi.length > 1 then                    # (間違って変な単語を登録しないように)
+    if yomi.length > 1 then  # 間違って変な単語を登録しないように
       registered = false
       @cd.search(yomi,@searchmode){ |w,p,outc|
         next if w =~ /\*$/
@@ -152,15 +145,15 @@ class WordSearch
         end
       }
       if !registered then
-        #      if ! @dc[yomi].index([yomi,word]) then   # 固定辞書に入ってない
-        if @studydict.index([yomi,word]) then  # しかし学習辞書に入っている
-          register(word,yomi)                  # ならば登録してしまう
-        end
+        #
+        # 学習辞書に入っている単語をもう一度確定するとローカル辞書に登録
+        #
+        register(word,yomi) if @studydict.index [yomi,word]
       end
     end
 
-    @studydict.unshift([yomi,word])
-    @studydict = @studydict[0..1000] # 1000行に制限
+    @studydict.unshift [yomi,word]
+    @studydict = @studydict[0..1000]  # 学習辞書サイズは1000行に制限
   end
 
   def loadDict(dictfile)
@@ -168,13 +161,9 @@ class WordSearch
     if File.exist?(dictfile) then
       File.open(dictfile){ |f|
         f.each { |line|
-          next if line =~ /^#/
-          next if line =~ /^\s*$/
-          line.chomp!
-          (yomi,word) = line.split(/\t/)
-          if yomi && word then
-            dict << [yomi, word]
-          end
+          next if line =~ /^#/ || line =~ /^\s*$/
+          (yomi,word) = line.chomp.split(/\t/)
+          dict << [yomi, word] if yomi && word
         }
       }
     end
@@ -201,13 +190,13 @@ class WordSearch
     # 実行すると変換が遅れて文字をとりこぼしてしまう。
     # たいした処理をしてないのに何故だろうか?
     # Thread.new do
-    #  @studydict = loadDict(Config.studyDictFile)
+    #  @studydict = loadDict(@studyDictFile)
     # end
     # どうしても駄目なのでロードするのをやめる。再ロードしたいときはKillすることに...
   end
 
   def finish
-    saveDict(Config.studyDictFile,@studydict)
+    saveDict(@studyDictFile,@studydict)
   end
 
 end
