@@ -144,10 +144,7 @@ class WordSearch
           break
         end
       }
-      if !registered then
-        #
-        # 学習辞書に入っている単語をもう一度確定するとローカル辞書に登録
-        #
+      if !registered then # 学習辞書に入っている単語をもう一度確定するとローカル辞書に登録
         register(word,yomi) if @studydict.index [yomi,word]
       end
     end
@@ -198,11 +195,4 @@ class WordSearch
   def finish
     saveDict(@studyDictFile,@studydict)
   end
-
-end
-
-if __FILE__ == $0 && nil then
-  ws = WordSearch.new("/Users/masui/Gyaim/Resources/dict.txt")
-  puts ws.search("masui",0)
-  puts ws.search("kanj",0)
 end
