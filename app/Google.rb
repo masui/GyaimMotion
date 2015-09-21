@@ -18,6 +18,8 @@ class Google
       #  #end
       #  candidates << candword
       #}
+      candidates.delete q.roma2hiragana
+      candidates.delete q.roma2katakana
       GyaimController.showCands(candidates) # AFMotionが非同期なのでここで更新!
     end
     candidates # ダミー (たぶん空配列が返る)

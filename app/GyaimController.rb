@@ -199,7 +199,8 @@ class GyaimController < IMKInputController
     else
       @candidates = @ws.search(@inputPat,@searchmode)
       @candidates.unshift(@selectedstr) if @selectedstr && @selectedstr != ''
-      @candidates.unshift(CopyText.get) if Time.now - CopyText.time < 5
+      copytext = CopyText.get
+      @candidates.unshift(copytext) if copytext != '' && Time.now - CopyText.time < 5
       
       @candidates.unshift(@inputPat)
       if @candidates.length < 8 then
@@ -249,8 +250,6 @@ class GyaimController < IMKInputController
         end
       end
     end
-    
-    @copytext = NSPasteboard.generalPasteboard.stringForType(NSPasteboardTypeString)
       
     resetState
   end
