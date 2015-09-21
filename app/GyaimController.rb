@@ -9,7 +9,6 @@
 
 class GyaimController < IMKInputController
   attr :candidates, true
-  attr :nthCand, true
   attr :searchmode, true
   
   @@gc = nil
@@ -333,7 +332,6 @@ class GyaimController < IMKInputController
 
   def GyaimController.showCands(candidates)
     @@gc.candidates = candidates
-    @@gc.nthCand = 0
     @@gc.searchmode = 2 # こうなっていないとRet押したときsearchmodeが1になってしまう
     @@gc.showCands
   end
