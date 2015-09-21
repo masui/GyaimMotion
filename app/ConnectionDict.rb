@@ -101,13 +101,13 @@ class ConnectionDict
   end
 end
 
-if $0 == __FILE__ && false then
-  d = ConnectionDict.new("../Resources/dict.txt")
+if $0 == __FILE__ then
+  d = ConnectionDict.new("resources/dict.txt")
   puts "ConnectionDict set"
 
   candidates = []
 
-  d.search("tou"){ |word,pat,outc|
+  d.search("tou",0){ |word,pat,outc|
     next if word =~ /\*$/
     word.gsub!(/\*/,'')
     next if candidates.collect { |e| e.word }.member?(word)
