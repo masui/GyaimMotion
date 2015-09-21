@@ -27,6 +27,8 @@ class GyaimController < IMKInputController
       @ws = WordSearch.new(connectionDictFile, Config.localDictFile, Config.studyDictFile)
     end
 
+    CopyText.set NSPasteboard.generalPasteboard.stringForType(NSPasteboardTypeString)
+
     resetState
 
     if super then
@@ -38,6 +40,7 @@ class GyaimController < IMKInputController
   # 入力システムがアクティブになると呼ばれる
   #
   def activateServer(sender)
+    CopyText.set NSPasteboard.generalPasteboard.stringForType(NSPasteboardTypeString)
     @ws.start
     showWindow
   end
@@ -196,6 +199,8 @@ class GyaimController < IMKInputController
     else
       @candidates = @ws.search(@inputPat,@searchmode)
       @candidates.unshift(@selectedstr) if @selectedstr && @selectedstr != ''
+      @candidates.unshift(CopyText.get) if Time.now - CopyText.time < 5
+      
       @candidates.unshift(@inputPat)
       if @candidates.length < 8 then
         hiragana = @inputPat.roma2hiragana
@@ -244,6 +249,9 @@ class GyaimController < IMKInputController
         end
       end
     end
+    
+    @copytext = NSPasteboard.generalPasteboard.stringForType(NSPasteboardTypeString)
+      
     resetState
   end
 
