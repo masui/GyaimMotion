@@ -40,9 +40,19 @@ class WordSearch
       # Google.searchCands()は非同期関数なので、実際にはその中で
       # showCandsが呼ばれる.
       candidates = Google.searchCands(q)
-    elsif q =~ /^\#(.*)$/ then
-      #color = $1
-      #Image.generatePNG("#{Config.imageDir}/#{id}.png",color,40,40)
+    elsif q =~ /^(.*)\#$/ then
+      #
+      # 色指定した画像を入力
+      #
+      color = $1
+      tmpfile = "/tmp/gyaim_#{$$}.png"
+      Image.generatePNG(tmpfile,color,40,40)
+      data = File.read(tmpfile)
+      id = MD5.digest(data)
+      Files.move(tmpfile,"#{Config.imageDir}/#{id}.png")
+      Image.generatePNG("#{Config.imageDir}/#{id}s.png",color,20,20)
+      candidates << id
+      
       #
       # 色指定
       #
