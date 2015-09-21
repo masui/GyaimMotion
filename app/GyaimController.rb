@@ -214,9 +214,6 @@ class GyaimController < IMKInputController
   def fix
     if @candidates.length > @nthCand then
       word = wordpart(@candidates[@nthCand])
-      # 何故かinsertTextだとhandleEventが呼ばれてしまうようで
-      # @client.insertText(word)
-
       if imagecand?(word) then
         if !@tmp_image_displayed then
           Emulation.key("v", "command down") # paste
@@ -224,11 +221,6 @@ class GyaimController < IMKInputController
         @tmp_image_displayed = false
       else
         @client.insertText(word,replacementRange:NSMakeRange(NSNotFound, NSNotFound))
-        #if @inputPat !~ /^(.*)\?$/ then # 暗号化単語じゃない
-        #  File.open(File.expand_path("~/.gyaimdict/log/#{Time.now.strftime('%Y%m%d')}.txt"),"a"){ |f|
-        #    f.puts "#{Time.now.strftime('%Y%m%d%H%M%S')}\t#{word}"
-        #  }
-        #end
       end
 
       if word == @selectedstr then
@@ -265,8 +257,6 @@ class GyaimController < IMKInputController
     word = cands[@nthCand]
     if word then
       if imagecand?(word) then
-        #gyazoID = word
-        
         # 入力中モードじゃなくするためのハック
         @client.insertText(' ',replacementRange:NSMakeRange(NSNotFound, NSNotFound))
         @bs_through = true
@@ -313,9 +303,8 @@ class GyaimController < IMKInputController
   # キャレットの位置に候補ウィンドウを出す
   #
   def showWindow
-    # MacRubyでポインタを使うための苦しいやり方
+    # MacRubyでポインタを使う方法
     # http://d.hatena.ne.jp/Watson/20100823/1282543331
-    #
     lineRectP = Pointer.new('{CGRect={CGPoint=dd}{CGSize=dd}}')
     @client.attributesForCharacterIndex(0,lineHeightRectangle:lineRectP)
     lineRect = lineRectP[0]
