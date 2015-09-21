@@ -100,22 +100,3 @@ class ConnectionDict
     end
   end
 end
-
-if $0 == __FILE__ then
-  d = ConnectionDict.new("resources/dict.txt")
-  puts "ConnectionDict set"
-
-  candidates = []
-
-  d.search("tou",0){ |word,pat,outc|
-    next if word =~ /\*$/
-    word.gsub!(/\*/,'')
-    next if candidates.collect { |e| e.word }.member?(word)
-    puts "addCandidate(#{word},#{pat},#{outc})"
-    candidates << DictEntry.new(pat,word,outc,nil)
-    puts candidates.length
-    if candidates.length > 20 then
-      break
-    end
-  }
-end

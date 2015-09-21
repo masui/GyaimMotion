@@ -22,11 +22,3 @@ class Crypt
     res.force_encoding("UTF-8") # 無理に指定
   end
 end
-
-if __FILE__ == $0 then
-  s = Crypt.encrypt("増井みたいな","def")
-  puts s
-  ss = Crypt.decrypt(s,"def")
-  puts ss
-end
-
