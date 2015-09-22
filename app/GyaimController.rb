@@ -198,16 +198,15 @@ class GyaimController < IMKInputController
       end
     else
       @candidates = @ws.search(@inputPat,@searchmode)
-      @candidates.unshift(@selectedstr) if @selectedstr && @selectedstr != ''
+      @candidates.unshift(@selectedstr) if @selectedstr && @selectedstr !~ /^\s*$/ && @selectedstr !~ /[0-9a-f]{32}/i
       copytext = CopyText.get
-      @candidates.unshift(copytext) if copytext != '' && Time.now - CopyText.time < 5
-      
+      @candidates.unshift(copytext) if copytext != '' && Time.now - CopyText.time < 5 && copytext !~ /[0-9a-f]{32}/i
       @candidates.unshift(@inputPat)
       if @candidates.length < 8 then
         hiragana = @inputPat.roma2hiragana
         @candidates.push(hiragana)
       end
-
+      @candidates.uniq!
     end
     @nthCand = 0
     showCands
