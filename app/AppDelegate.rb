@@ -12,6 +12,17 @@ class AppDelegate
     #
     identifier = NSBundle.mainBundle.bundleIdentifier
     server = IMKServer.alloc.initWithName("Gyaim_Connection",bundleIdentifier:identifier)
+
+    #
+    # ペーストバッファの時刻を常に記憶しておく (古いものは変換候補に出さないようにするため)
+    # ポーリングがダサいが他に方法がないような
+    #
+    Thread.new do
+      while true do
+        CopyText.set NSPasteboard.generalPasteboard.stringForType(NSPasteboardTypeString)
+        sleep 60
+      end
+    end
   end
 end
     
