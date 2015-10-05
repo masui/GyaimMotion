@@ -2,10 +2,10 @@
 <archive type="com.apple.InterfaceBuilder3.Cocoa.XIB" version="8.00">
 	<data>
 		<int key="IBDocument.SystemTarget">0</int>
-		<string key="IBDocument.SystemVersion">14D136</string>
+		<string key="IBDocument.SystemVersion">15A284</string>
 		<string key="IBDocument.InterfaceBuilderVersion">7706</string>
-		<string key="IBDocument.AppKitVersion">1347.57</string>
-		<string key="IBDocument.HIToolboxVersion">758.70</string>
+		<string key="IBDocument.AppKitVersion">1404.11</string>
+		<string key="IBDocument.HIToolboxVersion">806.00</string>
 		<object class="NSMutableDictionary" key="IBDocument.PluginVersions">
 			<string key="NS.key.0">com.apple.InterfaceBuilder.CocoaPlugin</string>
 			<string key="NS.object.0">7706</string>
@@ -84,7 +84,7 @@
 											<string key="NSFrameSize">{198, 77}</string>
 											<reference key="NSSuperview" ref="225386885"/>
 											<reference key="NSWindow"/>
-											<reference key="NSNextKeyView" ref="705240079"/>
+											<reference key="NSNextKeyView"/>
 											<object class="NSTextContainer" key="NSTextContainer" id="847492557">
 												<object class="NSLayoutManager" key="NSLayoutManager">
 													<object class="NSTextStorage" key="NSTextStorage">
@@ -219,7 +219,7 @@
 							<string key="NSFrame">{{20, 20}, {200, 79}}</string>
 							<reference key="NSSuperview" ref="158908139"/>
 							<reference key="NSWindow"/>
-							<reference key="NSNextKeyView" ref="225386885"/>
+							<reference key="NSNextKeyView" ref="705240079"/>
 							<int key="NSsFlags">133122</int>
 							<reference key="NSVScroller" ref="705240079"/>
 							<reference key="NSHScroller" ref="469986557"/>
