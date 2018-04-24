@@ -31,10 +31,10 @@ class WordSearch
     if File.mtime(@localDictFile) > @localdicttime then
       @localdict = loadDict(@localDictFile)
     end
-
     candfound = {}
-    candidates = []
 
+
+    candidates = []
     if q.length > 1 && q.sub!(/\.$/,'') then
       # パタンの最後にピリオドが入力されたらGoogle検索.
       # Google.searchCands()は非同期関数なので、実際にはその中で
