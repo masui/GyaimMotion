@@ -4,8 +4,8 @@ build:
 ib:
 	rake ib
 cp:
-	/bin/rm -r ~/Library/Input\ Methods/Gyaim.app
-	cp -r build/MacOSX-10.11-Development/Gyaim.app ~/Library/Input\ Methods/
+	/bin/rm -f -r ~/Library/Input\ Methods/Gyaim.app
+	cp -r build/MacOSX-10.13-Development/Gyaim.app ~/Library/Input\ Methods/
 clean:
 	rake clean
 kill:
