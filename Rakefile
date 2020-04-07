@@ -54,5 +54,7 @@ Motion::Project::App.setup do |app|
     ]
   }
 
+  # app.files_dependencies 'app/Google.rb' => 'app/GyaimController.rb' # ????
+
 end
 

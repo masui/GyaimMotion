@@ -5,7 +5,11 @@ ib:
 	rake ib
 cp:
 	/bin/rm -f -r ~/Library/Input\ Methods/Gyaim.app
-	cp -r build/MacOSX-10.13-Development/Gyaim.app ~/Library/Input\ Methods/
+	cp -r build/MacOSX-10.14-Development/Gyaim.app ~/Library/Input\ Methods/
+#	cp -r build/MacOSX-10.13-Development/Gyaim.app ~/Library/Input\ Methods/
+reset:
+	/bin/rm -f -r ~/Library/Input\ Methods/Gyaim.app
+	cp -r ~/Gyaim.app ~/Library/Input\ Methods/
 clean:
 	rake clean
 kill:
@@ -20,4 +24,6 @@ dmg:
 all: clean ib build
 update: kill cp
 
+orig:
+	cp -r ~/Gyaim.app ~/Library/Input\ Methods/
 

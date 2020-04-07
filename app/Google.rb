@@ -10,14 +10,11 @@ class Google
   #
   def Google.searchCands(q)
     candidates = []
-    AFMotion::JSON.get("http://google.com/transliterate", {langpair: "ja-Hira|ja", text: q.roma2hiragana}) do |result|
+    File.open("/tmp/loglog","w"){ |f|
+      f.puts AFMotion::JSON.methods
+    }
+    AFMotion::JSON.get("https://google.com/transliterate", {langpair: "ja-Hira|ja", text: q.roma2hiragana}) do |result|
       candidates = result.object[0][1].uniq
-      #  #if !candfound[candword] then
-      #  #  candfound[candword] = 1
-      #  #  @candidates << candword
-      #  #end
-      #  candidates << candword
-      #}
       candidates.delete q.roma2hiragana
       candidates.delete q.roma2katakana
       GyaimController.showCands(candidates) # AFMotionが非同期なのでここで更新!
@@ -30,20 +27,20 @@ class Google
   #
   def Google.searchImages(q)
     ids = []
-    server = 'ajax.googleapis.com'
-    command = "/ajax/services/search/images?q=#{q}&v=1.0&rsz=large&start=1"
-    Net::HTTP.start(server, 80) {|http|
-      response = http.get(command)
-      json = BubbleWrap::JSON.parse(response.body)
-      images = json['responseData']['results']
-      images.each { |image|
-        url = image['url']
-        if id = Image.downloadImage(url) then
-          ids << id
-        end
-      }
-    }
-    puts ids
+#    server = 'ajax.googleapis.com'
+#    command = "/ajax/services/search/images?q=#{q}&v=1.0&rsz=large&start=1"
+#    Net::HTTP.start(server, 80) {|http|
+#      response = http.get(command)
+#      json = BubbleWrap::JSON.parse(response.body)
+#      images = json['responseData']['results']
+#      images.each { |image|
+#        url = image['url']
+#        if id = Image.downloadImage(url) then
+#          ids << id
+#        end
+#      }
+#    }
+#    puts ids
     ids
   end
 

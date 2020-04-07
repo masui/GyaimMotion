@@ -47,3 +47,7 @@
   keyin('v',"command down") # Ctrl-v
   keyin(51) # del
 
+
+
+2020/4/7
+afmotionのバージョン2.5を指定するとビルド成功 なんてこった

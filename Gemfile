@@ -6,9 +6,11 @@ gem 'rake'
 
 gem 'json'
 # gem 'digest'
+
 gem 'rm-digest'  # RmDigest::SHA1.hexdigest('foo')
 
-gem "afmotion"   # これを入れると rake pod:install で vendor/ ができる
+# afmotionが2.6だとうごかない
+gem "afmotion", "2.5"   # これを入れると rake pod:install で vendor/ ができる
 
 # gem "AXTyper" # Accessibilityは使えないか?
 
