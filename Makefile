@@ -18,7 +18,7 @@ test:
 	rake spec
 dmg:
 	/bin/rm -f Gyaim.dmg
-	hdiutil create -srcfolder build/MacOSX-10.11-Development/Gyaim.app -volname Gyaim Gyaim.dmg
+	hdiutil create -srcfolder build/MacOSX-10.14-Development/Gyaim.app -volname Gyaim Gyaim.dmg
 	scp Gyaim.dmg pitecan.com:/www/www.pitecan.com/tmp
 
 all: clean ib build
