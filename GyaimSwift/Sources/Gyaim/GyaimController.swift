@@ -204,6 +204,18 @@ class GyaimController: IMKInputController {
                 handled = true
             }
         }
+        // Number keys 1-9: select candidate from list (only when list is visible)
+        else if converting, nthCand > 0 || searchMode > 0,
+                c >= 0x31, c <= 0x39,
+                modifierFlags.intersection([.control, .command, .option]).isEmpty {
+            let num = Int(c - 0x30) // 1-9
+            let targetIndex = nthCand + num
+            if targetIndex < candidates.count {
+                nthCand = targetIndex
+                fix(client: sender)
+            }
+            handled = true
+        }
         // Printable character (0x21-0x7e), no Control/Command/Option
         else if c >= 0x21, c <= 0x7e,
                 modifierFlags.intersection([.control, .command, .option]).isEmpty {
@@ -359,22 +371,15 @@ class GyaimController: IMKInputController {
 
         // Register/study logic
         if word == selectedStr {
-            if inputPat.hasSuffix("?") {
-                let pat = String(inputPat.dropLast())
-                if let encrypted = Crypt.encrypt(word, salt: pat) {
-                    ws?.register(word: encrypted, reading: "?")
-                }
-            } else {
-                ws?.register(word: word, reading: inputPat)
-            }
+            ws?.register(word: word, reading: inputPat)
             selectedStr = nil
         } else {
             if let reading = candidate.reading {
-                if reading != "ds", reading != "?" {
+                if reading != "ds" {
                     ws?.study(word: word, reading: reading)
                 }
             } else {
-                if inputPat != "ds", inputPat != "?" {
+                if inputPat != "ds" {
                     ws?.study(word: word, reading: inputPat)
                 }
             }

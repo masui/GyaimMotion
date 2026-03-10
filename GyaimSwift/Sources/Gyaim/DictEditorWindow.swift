@@ -14,7 +14,10 @@ class DictEditorWindow: NSWindow, NSTableViewDataSource, NSTableViewDelegate {
             shared = DictEditorWindow()
         }
         shared?.loadEntries()
+        shared?.level = .floating
         shared?.makeKeyAndOrderFront(nil)
+        shared?.becomeKey()
+        NSApp.setActivationPolicy(.accessory)
         NSApp.activate(ignoringOtherApps: true)
     }
 
@@ -35,8 +38,10 @@ class DictEditorWindow: NSWindow, NSTableViewDataSource, NSTableViewDelegate {
         // Table setup
         readingColumn.title = "読み"
         readingColumn.width = 180
+        readingColumn.isEditable = true
         wordColumn.title = "単語"
         wordColumn.width = 280
+        wordColumn.isEditable = true
 
         tableView.addTableColumn(readingColumn)
         tableView.addTableColumn(wordColumn)
@@ -100,6 +105,11 @@ class DictEditorWindow: NSWindow, NSTableViewDataSource, NSTableViewDelegate {
         loadEntries()
     }
 
+    override func close() {
+        super.close()
+        NSApp.setActivationPolicy(.prohibited)
+    }
+
     // MARK: - Data
 
     private func loadEntries() {
@@ -114,6 +124,8 @@ class DictEditorWindow: NSWindow, NSTableViewDataSource, NSTableViewDelegate {
     }
 
     @objc private func saveEntries() {
+        // Commit any in-progress cell editing
+        makeFirstResponder(nil)
         var dict: [[String]] = []
         for e in entries {
             let r = e.reading.trimmingCharacters(in: .whitespaces)

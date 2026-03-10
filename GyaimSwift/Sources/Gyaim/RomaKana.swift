@@ -407,5 +407,15 @@ struct RomaKana {
     xyu\tゅ\tュ
     xyo\tょ\tョ
     -\tー\tー
+    ?\t？\t？
+    !\t！\t！
+    .\t。\t。
+    ,\t、\t、
+    /\t・\t・
+    ~\t〜\t〜
+    [\t「\t「
+    ]\t」\t」
+    (\t（\t（
+    )\t）\t）
     """
 }

@@ -81,25 +81,6 @@ class WordSearch {
             return candidates
         }
 
-        // Special: decrypt (?suffix)
-        if q.count > 1, q.hasSuffix("?") {
-            let pat = String(q.dropLast())
-            for entry in localDict {
-                guard entry.count >= 2 else { continue }
-                let yomi = entry[0]
-                let word = entry[1]
-                if yomi == "?" {
-                    if !candfound.contains(word) {
-                        if let decrypted = Crypt.decrypt(word, salt: pat) {
-                            candidates.append(SearchCandidate(word: decrypted, reading: yomi))
-                            candfound.insert(word)
-                            if candidates.count > limit { break }
-                        }
-                    }
-                }
-            }
-            return candidates
-        }
 
         // Special: uppercase → pass through
         if q.range(of: "[A-Z]", options: .regularExpression) != nil {

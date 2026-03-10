@@ -12,7 +12,10 @@ class PreferencesWindow: NSWindow {
         if shared == nil {
             shared = PreferencesWindow()
         }
+        shared?.level = .floating
         shared?.makeKeyAndOrderFront(nil)
+        shared?.becomeKey()
+        NSApp.setActivationPolicy(.accessory)
         NSApp.activate(ignoringOtherApps: true)
     }
 
@@ -31,6 +34,11 @@ class PreferencesWindow: NSWindow {
 
         buildUI()
         loadBindings()
+    }
+
+    override func close() {
+        super.close()
+        NSApp.setActivationPolicy(.prohibited)
     }
 
     private func buildUI() {
