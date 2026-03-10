@@ -11,7 +11,6 @@ class GyaimController: IMKInputController {
     private var candidates: [SearchCandidate] = []
     private var nthCand = 0
     private var searchMode = 0
-    private var selectedStr: String?
     private var tmpImageDisplayed = false
     private var bsThrough = false
 
@@ -59,7 +58,6 @@ class GyaimController: IMKInputController {
         candidates = []
         nthCand = 0
         searchMode = 0
-        selectedStr = nil
     }
 
     private var converting: Bool {
@@ -107,14 +105,6 @@ class GyaimController: IMKInputController {
         let keyCode = event.keyCode
         let modifierFlags = event.modifierFlags
 
-        // Remember selected text for potential registration
-        if let client = sender as? IMKTextInput {
-            let range = client.selectedRange()
-            if let attrStr = client.attributedSubstring(from: range) {
-                let s = attrStr.string
-                if !s.isEmpty { selectedStr = s }
-            }
-        }
 
         if keyCode == kVirtualJISKanaModeKey || keyCode == kVirtualJISRomanModeKey {
             return true
@@ -252,14 +242,6 @@ class GyaimController: IMKInputController {
         } else {
             candidates = ws.search(query: inputPat, searchMode: searchMode)
 
-            // Prepend selected text if valid
-            if let sel = selectedStr,
-               !sel.trimmingCharacters(in: .whitespaces).isEmpty,
-               sel.range(of: "^[0-9a-f]{32}$", options: [.regularExpression, .caseInsensitive]) == nil,
-               !sel.hasPrefix("http") {
-                candidates.insert(SearchCandidate(word: sel), at: 0)
-            }
-
             // Input pattern itself as first candidate
             candidates.insert(SearchCandidate(word: inputPat), at: 0)
 
@@ -369,19 +351,14 @@ class GyaimController: IMKInputController {
             client.insertText(word, replacementRange: NSRange(location: NSNotFound, length: NSNotFound))
         }
 
-        // Register/study logic
-        if word == selectedStr {
-            ws?.register(word: word, reading: inputPat)
-            selectedStr = nil
+        // Study logic
+        if let reading = candidate.reading {
+            if reading != "ds" {
+                ws?.study(word: word, reading: reading)
+            }
         } else {
-            if let reading = candidate.reading {
-                if reading != "ds" {
-                    ws?.study(word: word, reading: reading)
-                }
-            } else {
-                if inputPat != "ds" {
-                    ws?.study(word: word, reading: inputPat)
-                }
+            if inputPat != "ds" {
+                ws?.study(word: word, reading: inputPat)
             }
         }
 
