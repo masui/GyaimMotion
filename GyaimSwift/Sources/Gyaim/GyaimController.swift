@@ -18,14 +18,12 @@ class GyaimController: IMKInputController {
     private var ws: WordSearch?
     private var rk = RomaKana()
     private var candWindow: CandidateWindow?
-    private var textView: NSTextView?
 
     override init!(server: IMKServer!, delegate: Any!, client inputClient: Any!) {
         super.init(server: server, delegate: delegate, client: inputClient)
 
         if candWindow == nil {
             candWindow = CandidateWindow()
-            textView = candWindow?.candTextView
         }
 
         if ws == nil {
@@ -68,6 +66,36 @@ class GyaimController: IMKInputController {
         !inputPat.isEmpty
     }
 
+    // MARK: - Menu & Preferences
+
+    override func menu() -> NSMenu! {
+        let menu = NSMenu(title: "Gyaim")
+        let item = NSMenuItem(title: "Gyaim 設定...",
+                              action: #selector(openPreferences(_:)),
+                              keyEquivalent: "")
+        item.target = self
+        menu.addItem(item)
+
+        let dictItem = NSMenuItem(title: "ユーザー辞書...",
+                                  action: #selector(openDictEditor(_:)),
+                                  keyEquivalent: "")
+        dictItem.target = self
+        menu.addItem(dictItem)
+        return menu
+    }
+
+    @objc func openDictEditor(_ sender: Any?) {
+        DictEditorWindow.show()
+    }
+
+    @objc func openPreferences(_ sender: Any?) {
+        PreferencesWindow.show()
+    }
+
+    override func showPreferences(_ sender: Any!) {
+        PreferencesWindow.show()
+    }
+
     // MARK: - Event Handling
 
     override func handle(_ event: NSEvent!, client sender: Any!) -> Bool {
@@ -92,23 +120,32 @@ class GyaimController: IMKInputController {
             return true
         }
 
-        // F6: confirm as hiragana, F7: confirm as katakana
-        let kVKF6: UInt16 = 97
-        let kVKF7: UInt16 = 98
-        if converting, keyCode == kVKF6 {
+        // Configurable shortcuts: hiragana / katakana confirm (modifier keys)
+        if converting, KeyBindings.shared.matchesHiragana(event: event) {
             fixAsKana(hiragana: true, client: sender)
-            showWindow()
             return true
         }
-        if converting, keyCode == kVKF7 {
+        if converting, KeyBindings.shared.matchesKatakana(event: event) {
             fixAsKana(hiragana: false, client: sender)
-            showWindow()
             return true
         }
 
         guard let eventString = event.characters, !eventString.isEmpty else { return true }
 
         guard let c = eventString.utf8.first else { return true }
+
+        // Single-key kana confirm: ; → hiragana, q → katakana (configurable)
+        if converting, modifierFlags.intersection([.control, .command, .option]).isEmpty {
+            if c == KeyBindings.shared.hiraganaChar {
+                fixAsKana(hiragana: true, client: sender)
+                return true
+            }
+            if c == KeyBindings.shared.katakanaChar {
+                fixAsKana(hiragana: false, client: sender)
+                return true
+            }
+        }
+
         var handled = false
 
         // Backspace / Escape
@@ -211,15 +248,6 @@ class GyaimController: IMKInputController {
                 candidates.insert(SearchCandidate(word: sel), at: 0)
             }
 
-            // Prepend recent clipboard
-            let copytext = CopyText.get()
-            if !copytext.isEmpty,
-               Date().timeIntervalSince(CopyText.time) < 5,
-               copytext.range(of: "^[0-9a-f]{32}$", options: [.regularExpression, .caseInsensitive]) == nil,
-               !copytext.hasPrefix("http") {
-                candidates.insert(SearchCandidate(word: copytext), at: 0)
-            }
-
             // Input pattern itself as first candidate
             candidates.insert(SearchCandidate(word: inputPat), at: 0)
 
@@ -271,20 +299,14 @@ class GyaimController: IMKInputController {
                                  replacementRange: NSRange(location: NSNotFound, length: NSNotFound))
         }
 
-        // Update candidate list in text view
-        if let tv = textView {
-            var candList: [String] = []
-            for i in 0...10 {
-                let idx = nthCand + 1 + i
-                guard idx < words.count, let cand = words[safe: idx] else { break }
-                candList.append(cand)
-            }
-            let displayText = candList.joined(separator: " ")
-            tv.textStorage?.setAttributedString(
-                NSAttributedString(string: displayText,
-                                   attributes: [.font: NSFont.systemFont(ofSize: 14),
-                                                .foregroundColor: NSColor.black]))
+        // Update vertical candidate list
+        var candList: [String] = []
+        for i in 0..<9 {
+            let idx = nthCand + 1 + i
+            guard idx < words.count, let cand = words[safe: idx] else { break }
+            candList.append(cand)
         }
+        candWindow?.updateCandidates(candList, selectedIndex: -1)
     }
 
     // MARK: - Fix as Kana (F6/F7)
@@ -292,10 +314,19 @@ class GyaimController: IMKInputController {
     private func fixAsKana(hiragana: Bool, client sender: Any?) {
         guard converting else { return }
         let word = hiragana ? rk.roma2hiragana(inputPat) : rk.roma2katakana(inputPat)
-        guard !word.isEmpty, let client = sender as? IMKTextInput else {
+
+        let resolvedClient = (sender as? IMKTextInput) ?? (self.client() as? IMKTextInput)
+        guard !word.isEmpty, let client = resolvedClient else {
             resetState()
+            hideWindow()
             return
         }
+
+        let attrs: [NSAttributedString.Key: Any] = [:]
+        let attrStr = NSAttributedString(string: word, attributes: attrs)
+        client.setMarkedText(attrStr,
+                             selectionRange: NSRange(location: word.count, length: 0),
+                             replacementRange: NSRange(location: NSNotFound, length: NSNotFound))
         client.insertText(word, replacementRange: NSRange(location: NSNotFound, length: NSNotFound))
         ws?.study(word: word, reading: inputPat)
         resetState()
@@ -357,23 +388,35 @@ class GyaimController: IMKInputController {
 
     private func showWindow() {
         guard converting else {
-            hideWindow()
+            candWindow?.orderOut(nil)
             return
         }
-        guard let client = client() as? IMKTextInput else { return }
+        guard let cw = candWindow,
+              let client = client() as? IMKTextInput else { return }
         var lineRect = NSRect.zero
         client.attributes(forCharacterIndex: 0, lineHeightRectangle: &lineRect)
-        var origin = lineRect.origin
-        origin.x -= 15
-        origin.y -= 125
-        candWindow?.setFrameOrigin(origin)
-        candWindow?.orderFront(nil)
+
+        let cursorOrigin = lineRect.origin
+        let cursorHeight = lineRect.height
+        let winHeight = cw.frame.height
+
+        var origin = cursorOrigin
+        origin.x -= 5
+
+        // If window would go below screen bottom, show above cursor instead
+        if origin.y - winHeight - 5 < 0 {
+            origin.y = cursorOrigin.y + cursorHeight + 5
+        } else {
+            origin.y = cursorOrigin.y - winHeight - 5
+        }
+
+        cw.setFrameOrigin(origin)
+        cw.orderFront(nil)
         NSApp.unhide(nil)
     }
 
     private func hideWindow() {
         candWindow?.orderOut(nil)
-        NSApp.hide(nil)
     }
 
     // Class method for async candidate updates (e.g., from Google)
