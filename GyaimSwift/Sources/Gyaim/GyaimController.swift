@@ -91,6 +91,21 @@ class GyaimController: IMKInputController {
         if keyCode == kVirtualJISKanaModeKey || keyCode == kVirtualJISRomanModeKey {
             return true
         }
+
+        // F6: confirm as hiragana, F7: confirm as katakana
+        let kVKF6: UInt16 = 97
+        let kVKF7: UInt16 = 98
+        if converting, keyCode == kVKF6 {
+            fixAsKana(hiragana: true, client: sender)
+            showWindow()
+            return true
+        }
+        if converting, keyCode == kVKF7 {
+            fixAsKana(hiragana: false, client: sender)
+            showWindow()
+            return true
+        }
+
         guard let eventString = event.characters, !eventString.isEmpty else { return true }
 
         guard let c = eventString.utf8.first else { return true }
@@ -257,19 +272,34 @@ class GyaimController: IMKInputController {
         }
 
         // Update candidate list in text view
-        textView?.string = ""
-        for i in 0...10 {
-            let idx = nthCand + 1 + i
-            guard idx < words.count, let cand = words[safe: idx] else { break }
-            if ImageManager.isImageCandidate(cand) {
-                if let tv = textView {
-                    ImageManager.pasteGyazoToTextView(cand, textView: tv)
-                }
-            } else {
-                textView?.insertText(cand, replacementRange: NSRange(location: textView?.string.count ?? 0, length: 0))
+        if let tv = textView {
+            var candList: [String] = []
+            for i in 0...10 {
+                let idx = nthCand + 1 + i
+                guard idx < words.count, let cand = words[safe: idx] else { break }
+                candList.append(cand)
             }
-            textView?.insertText(" ", replacementRange: NSRange(location: textView?.string.count ?? 0, length: 0))
+            let displayText = candList.joined(separator: " ")
+            tv.textStorage?.setAttributedString(
+                NSAttributedString(string: displayText,
+                                   attributes: [.font: NSFont.systemFont(ofSize: 14),
+                                                .foregroundColor: NSColor.black]))
         }
+    }
+
+    // MARK: - Fix as Kana (F6/F7)
+
+    private func fixAsKana(hiragana: Bool, client sender: Any?) {
+        guard converting else { return }
+        let word = hiragana ? rk.roma2hiragana(inputPat) : rk.roma2katakana(inputPat)
+        guard !word.isEmpty, let client = sender as? IMKTextInput else {
+            resetState()
+            return
+        }
+        client.insertText(word, replacementRange: NSRange(location: NSNotFound, length: NSNotFound))
+        ws?.study(word: word, reading: inputPat)
+        resetState()
+        hideWindow()
     }
 
     // MARK: - Fix (commit selection)
@@ -320,11 +350,16 @@ class GyaimController: IMKInputController {
         }
 
         resetState()
+        hideWindow()
     }
 
     // MARK: - Window Management
 
     private func showWindow() {
+        guard converting else {
+            hideWindow()
+            return
+        }
         guard let client = client() as? IMKTextInput else { return }
         var lineRect = NSRect.zero
         client.attributes(forCharacterIndex: 0, lineHeightRectangle: &lineRect)
@@ -332,10 +367,12 @@ class GyaimController: IMKInputController {
         origin.x -= 15
         origin.y -= 125
         candWindow?.setFrameOrigin(origin)
+        candWindow?.orderFront(nil)
         NSApp.unhide(nil)
     }
 
     private func hideWindow() {
+        candWindow?.orderOut(nil)
         NSApp.hide(nil)
     }
 

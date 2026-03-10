@@ -9,13 +9,15 @@ class CandidateWindow: NSWindow {
     private var initialLocation: NSPoint = .zero
 
     init() {
-        let frame = NSRect(x: 0, y: 0, width: 400, height: 120)
+        // Match candwin.png dimensions (241x126)
+        let frame = NSRect(x: 0, y: 0, width: 241, height: 126)
 
-        candTextView = NSTextView(frame: NSRect(x: 10, y: 10, width: 380, height: 60))
+        candTextView = NSTextView(frame: NSRect(x: 5, y: 5, width: 231, height: 70))
         candTextView.isEditable = false
         candTextView.isSelectable = false
         candTextView.drawsBackground = false
         candTextView.font = NSFont.systemFont(ofSize: 14)
+        candTextView.textColor = .black
 
         super.init(contentRect: frame,
                    styleMask: .borderless,
@@ -28,13 +30,14 @@ class CandidateWindow: NSWindow {
         isOpaque = false
         hasShadow = true
         canHide = true
+        hidesOnDeactivate = false
 
         // Background view with candwin.png
         let contentView = CandBackgroundView(frame: frame)
         self.contentView = contentView
 
         // Scroll view for candidate text
-        let scrollView = NSScrollView(frame: NSRect(x: 10, y: 10, width: 380, height: 60))
+        let scrollView = NSScrollView(frame: NSRect(x: 5, y: 5, width: 231, height: 70))
         scrollView.hasVerticalScroller = false
         scrollView.hasHorizontalScroller = false
         scrollView.drawsBackground = false
