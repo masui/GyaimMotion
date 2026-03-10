@@ -1,0 +1,64 @@
+name: Gyaim
+options:
+  bundleIdPrefix: com.pitecan.inputmethod
+  deploymentTarget:
+    macOS: "13.0"
+  xcodeVersion: "15.0"
+
+targets:
+  Gyaim:
+    type: application
+    platform: macOS
+    sources:
+      - path: Sources/Gyaim
+    resources:
+      - path: Resources
+        excludes:
+          - Info.plist
+    info:
+      path: Resources/Info.plist
+      properties:
+        InputMethodConnectionName: Gyaim_Connection
+        InputMethodServerControllerClass: GyaimController
+        InputMethodServerDelegateClass: GyaimController
+        LSBackgroundOnly: true
+        tsInputMethodIconFileKey: icon.pdf
+        tsInputMethodCharacterRepertoireKey: [Hira, Latn]
+        ComponentInputModeDict:
+          tsInputModeListKey:
+            com.apple.inputmethod.Japanese:
+              TISInputSourceID: com.pitecan.inputmethod.Gyaim.Japanese
+              TISIntendedLanguage: ja
+              tsInputModeScriptKey: smJapanese
+              tsInputModePrimaryInScriptKey: true
+          tsVisibleInputModeOrderedArrayKey:
+            - com.apple.inputmethod.Japanese
+        LSApplicationCategoryType: public.app-category.productivity
+        CFBundleDevelopmentRegion: English
+    settings:
+      PRODUCT_BUNDLE_IDENTIFIER: com.pitecan.inputmethod.Gyaim
+      INFOPLIST_FILE: Resources/Info.plist
+      SWIFT_VERSION: "5.9"
+    frameworks:
+      - InputMethodKit
+      - Security
+
+  GyaimTests:
+    type: bundle.unit-test
+    platform: macOS
+    sources:
+      - path: Tests/GyaimTests
+      - path: Sources/Gyaim
+        excludes:
+          - main.swift
+    resources:
+      - path: Resources
+        excludes:
+          - Info.plist
+    settings:
+      SWIFT_VERSION: "5.9"
+      GENERATE_INFOPLIST_FILE: YES
+      PRODUCT_BUNDLE_IDENTIFIER: com.pitecan.inputmethod.Gyaim.Tests
+    frameworks:
+      - InputMethodKit
+      - Security

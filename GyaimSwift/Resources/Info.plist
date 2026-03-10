@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>CFBundleDevelopmentRegion</key>
+	<string>English</string>
+	<key>CFBundleExecutable</key>
+	<string>$(EXECUTABLE_NAME)</string>
+	<key>CFBundleIdentifier</key>
+	<string>$(PRODUCT_BUNDLE_IDENTIFIER)</string>
+	<key>CFBundleInfoDictionaryVersion</key>
+	<string>6.0</string>
+	<key>CFBundleName</key>
+	<string>$(PRODUCT_NAME)</string>
+	<key>CFBundlePackageType</key>
+	<string>APPL</string>
+	<key>CFBundleShortVersionString</key>
+	<string>1.0</string>
+	<key>CFBundleVersion</key>
+	<string>1</string>
+	<key>ComponentInputModeDict</key>
+	<dict>
+		<key>tsInputModeListKey</key>
+		<dict>
+			<key>com.apple.inputmethod.Japanese</key>
+			<dict>
+				<key>TISInputSourceID</key>
+				<string>com.pitecan.inputmethod.Gyaim.Japanese</string>
+				<key>TISIntendedLanguage</key>
+				<string>ja</string>
+				<key>tsInputModePrimaryInScriptKey</key>
+				<true/>
+				<key>tsInputModeScriptKey</key>
+				<string>smJapanese</string>
+			</dict>
+		</dict>
+		<key>tsVisibleInputModeOrderedArrayKey</key>
+		<array>
+			<string>com.apple.inputmethod.Japanese</string>
+		</array>
+	</dict>
+	<key>InputMethodConnectionName</key>
+	<string>Gyaim_Connection</string>
+	<key>InputMethodServerControllerClass</key>
+	<string>GyaimController</string>
+	<key>InputMethodServerDelegateClass</key>
+	<string>GyaimController</string>
+	<key>LSApplicationCategoryType</key>
+	<string>public.app-category.productivity</string>
+	<key>LSBackgroundOnly</key>
+	<true/>
+	<key>tsInputMethodCharacterRepertoireKey</key>
+	<array>
+		<string>Hira</string>
+		<string>Latn</string>
+	</array>
+	<key>tsInputMethodIconFileKey</key>
+	<string>icon.pdf</string>
+</dict>
+</plist>
