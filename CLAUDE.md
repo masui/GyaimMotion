@@ -4,75 +4,79 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-GyaimMotion is a Japanese Input Method Editor (IME) for macOS, built with RubyMotion and InputMethodKit. Originally created by Toshiyuki Masui (2011), last successfully built for macOS Catalina (April 2020).
+Gyaim is a Japanese Input Method Editor (IME) for macOS. Originally created by Toshiyuki Masui (2011) in RubyMotion, migrated to Swift (GyaimSwift/).
 
 - **App identifier**: `com.pitecan.inputmethod.Gyaim`
-- **Ruby version**: 2.5.5
+- **Language**: Swift
 - **Frameworks**: InputMethodKit, Security
+- **Project management**: XcodeGen (project.yml)
 
 ## Build & Development Commands
 
 ```bash
+# Generate Xcode project
+xcodegen generate
+
 # Build
-rake                    # Full build
-rake clean              # Clean build artifacts
-rake ib                 # Regenerate Interface Builder project (ib.xcodeproj)
-make all                # clean + ib + build
+xcodebuild -project Gyaim.xcodeproj -scheme Gyaim -configuration Debug -derivedDataPath .build build
 
-# Install & Run
-make cp                 # Copy built app to ~/Library/Input Methods/
-make kill               # Kill running Gyaim process
-make update             # kill + cp (reinstall)
-
-# Test
-rake spec               # Run all RSpec tests
-make test               # Same as rake spec
-
-# Distribution
-make dmg                # Create DMG (requires macOS 10.14+)
+# Install
+killall Gyaim
+rm -rf ~/Library/Input\ Methods/Gyaim.app
+cp -r .build/Build/Products/Debug/Gyaim.app ~/Library/Input\ Methods/
 ```
+
+Working directory for build commands: `GyaimSwift/`
 
 ## Architecture
 
 ### Core Input Flow
 
-`GyaimController.rb` is the central IME controller implementing the InputMethodKit protocol. It handles keyboard events via `handleEvent`, manages input state (`@inputPat`, `@candidates`, `@nthCand`, `@searchmode`), and coordinates dictionary lookups and candidate display.
+`GyaimController.swift` is the central IME controller implementing the InputMethodKit protocol. It handles keyboard events via `handle(_:client:)`, manages input state (`inputPat`, `candidates`, `nthCand`, `searchMode`), and coordinates dictionary lookups and candidate display.
 
-### Three-Tier Dictionary System (WordSearch.rb + ConnectionDict.rb)
+### Three-Tier Dictionary System (WordSearch.swift + ConnectionDict.swift)
 
-1. **Connection Dictionary** (`resources/dict.txt`) — Fixed morphological dictionary with conjugation support. Tab-separated format: `romaji[TAB]surface[TAB]input_connection[TAB]output_connection`. Enables compound word matching (e.g., "taberaremasen" → "食べられません").
-2. **Local Dictionary** (`~/.gyaim/localdict.txt`) — User-registered words, highest priority.
+1. **Connection Dictionary** (`resources/dict.txt`) — Fixed morphological dictionary with conjugation support. Tab-separated format: `romaji[TAB]surface[TAB]input_connection[TAB]output_connection`.
+2. **Local Dictionary** (`~/.gyaim/localdict.txt`) — User-registered words, highest priority. Hot reload via mtime check.
 3. **Study Dictionary** (`~/.gyaim/studydict.txt`) — Frequency-based learning (max 1000 entries, MRU ordering).
 
 Search modes: 0 = prefix matching (incremental), 1 = exact matching + auto-add kana variants.
 
-### Text Conversion (Romakana.rb)
+### Text Conversion (RomaKana.swift)
 
-Bidirectional romaji↔kana conversion with 353+ rules in `RKLIST`. Exposed as String methods: `"masui".roma2hiragana` → `"ますい"`, `"ますい".hiragana2roma` → `"masui"`, `"masui".roma2katakana` → `"マスイ"`.
+Bidirectional romaji-kana conversion with 350+ rules in `rklist`. Includes full-width symbol mappings (`?`->`？`, `!`->`！`, etc.).
 
 ### UI Components
 
-- **CandWindow.rb** — Borderless transparent popup for candidate display, positioned near text cursor.
-- **CandTextView.rb** — Renders candidate words (singleton via `awakeFromNib`).
-- **CandView.rb** — Background drawing with candwin.png.
-
-### Utilities
-
 | File | Purpose |
 |------|---------|
-| Config.rb | `~/.gyaim/` directory management, file paths |
-| Crypt.rb | MD5 salt-based encryption for sensitive words |
-| Emulation.rb | Keyboard emulation via JXA/osascript |
-| Files.rb | File copy/move/touch, HTTP download via AFMotion |
-| Image.rb | Image resize (sips), Gyazo integration |
-| Google.rb | Google transliteration API (async) |
-| CopyText.rb | Clipboard monitoring (~60s polling) |
-| AppDelegate.rb | IMKServer init, clipboard background thread |
+| CandidateWindow.swift | Vertical candidate list (NSStackView), numbered 1-9, screen-edge aware positioning |
+| PreferencesWindow.swift | Keyboard shortcut configuration UI |
+| DictEditorWindow.swift | User dictionary editor (NSTableView), add/delete/save/reload |
+| KeyBindings.swift | Configurable shortcuts, UserDefaults persistence, single-key kana confirm |
 
-## Key Constraints
+### Key Constraints
 
-- **afmotion must be pinned to 2.5** — version 2.6+ breaks builds.
-- **`require` does not work in RubyMotion** — all gems go through Gemfile/Bundler.
-- **XIB binding quirks** — use `awakeFromNib` for retrieving Interface Builder objects.
-- **Icon must be 20×20 PDF** for Retina-compatible menu bar display.
-- **User data directory**: `~/.gyaim/` (localdict.txt, studydict.txt, copytext, cacheimages/, images/)
+- **IME runs as LSBackgroundOnly** — `NSApp.unhide(nil)` causes focus loss, use `orderFront(nil)` only
+- **Ctrl+key in terminals** — Terminal apps intercept Ctrl+key independently of IME; use single-key shortcuts as alternative
+- **NSApp.setActivationPolicy** — Use `.accessory` temporarily when opening settings/dict editor windows, revert to `.prohibited` on close
+- **Icon must be 20x20 PDF** for Retina-compatible menu bar display
+- **User data directory**: `~/.gyaim/` (localdict.txt, studydict.txt)
+
+## ADR (Architecture Decision Records)
+
+設計上の重要な判断は `docs/adr/` に ADR として記録する。
+
+- テンプレート: `docs/adr/000-template.md`
+- 新規追加時は連番で `NNN-タイトル.md` を作成
+- 既存 ADR の変更時は新規 ADR を作成し、旧版の Status を `Superseded by ADR-NNN` に更新
+
+```
+docs/adr/
+├── 000-template.md
+├── 001-migrate-rubymotion-to-swift.md
+├── 002-remove-implicit-candidate-injection.md
+├── 003-vertical-candidate-window.md
+├── 004-configurable-keybindings.md
+└── 005-remove-nsapp-unhide.md
+```
