@@ -1,7 +1,7 @@
 import Cocoa
 
-/// Vertical candidate display window — borderless, rounded, draggable.
-class CandidateWindow: NSWindow {
+/// Vertical candidate display window — non-activating panel that never steals focus.
+class CandidateWindow: NSPanel {
     static var shared: CandidateWindow?
 
     private let stackView = NSStackView()
@@ -18,9 +18,10 @@ class CandidateWindow: NSWindow {
         let frame = NSRect(x: 0, y: 0, width: 260, height: 30)
 
         super.init(contentRect: frame,
-                   styleMask: .borderless,
+                   styleMask: [.borderless, .nonactivatingPanel],
                    backing: .buffered,
                    defer: false)
+        becomesKeyOnlyIfNeeded = true
 
         backgroundColor = .clear
         level = .statusBar
