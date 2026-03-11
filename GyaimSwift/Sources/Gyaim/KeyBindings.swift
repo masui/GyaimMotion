@@ -171,8 +171,12 @@ class KeyBindings {
     }
 
     func load() {
-        guard let data = UserDefaults.standard.data(forKey: defaultsKey),
-              let decoded = try? JSONDecoder().decode(StoredBindings.self, from: data) else {
+        guard let data = UserDefaults.standard.data(forKey: defaultsKey) else { return }
+        let decoded: StoredBindings
+        do {
+            decoded = try JSONDecoder().decode(StoredBindings.self, from: data)
+        } catch {
+            Log.config.error("Failed to decode key bindings: \(error.localizedDescription)")
             return
         }
         hiragana = decoded.hiragana
@@ -184,8 +188,11 @@ class KeyBindings {
     func save() {
         let stored = StoredBindings(hiragana: hiragana, katakana: katakana,
                                     hiraganaChar: hiraganaChar, katakanaChar: katakanaChar)
-        if let data = try? JSONEncoder().encode(stored) {
+        do {
+            let data = try JSONEncoder().encode(stored)
             UserDefaults.standard.set(data, forKey: defaultsKey)
+        } catch {
+            Log.config.error("Failed to encode key bindings: \(error.localizedDescription)")
         }
     }
 

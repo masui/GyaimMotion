@@ -65,6 +65,7 @@ class CandidateWindow: NSPanel {
             return
         }
 
+        Log.ui.debug("updateCandidates: \(words.count) candidates")
         let count = min(words.count, maxVisible)
         for i in 0..<count {
             let label = makeLabel(index: i, word: words[i], isSelected: i == selectedIndex)

@@ -19,10 +19,17 @@ class ConnectionDict {
     init(dictFile: String) {
         readDict(dictFile)
         initLink()
+        Log.dict.info("ConnectionDict loaded: \(dict.count) entries")
     }
 
     private func readDict(_ path: String) {
-        guard let content = try? String(contentsOfFile: path, encoding: .utf8) else { return }
+        let content: String
+        do {
+            content = try String(contentsOfFile: path, encoding: .utf8)
+        } catch {
+            Log.dict.error("Failed to read connection dict \(path): \(error.localizedDescription)")
+            return
+        }
         for line in content.split(separator: "\n", omittingEmptySubsequences: false) {
             let s = String(line)
             if s.hasPrefix("#") || s.trimmingCharacters(in: .whitespaces).isEmpty { continue }

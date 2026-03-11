@@ -12,15 +12,30 @@ enum CopyText {
         lock.lock()
         defer { lock.unlock() }
         guard let text else { return }
-        let curtext = (try? String(contentsOfFile: file, encoding: .utf8)) ?? ""
+        let curtext: String
+        do {
+            curtext = try String(contentsOfFile: file, encoding: .utf8)
+        } catch {
+            Log.config.warning("Failed to read copytext: \(error.localizedDescription)")
+            curtext = ""
+        }
         if curtext != text {
-            try? text.write(toFile: file, atomically: true, encoding: .utf8)
+            do {
+                try text.write(toFile: file, atomically: true, encoding: .utf8)
+            } catch {
+                Log.config.warning("Failed to write copytext: \(error.localizedDescription)")
+            }
         }
         lastSetTime = Date()
     }
 
     static func get() -> String {
-        (try? String(contentsOfFile: file, encoding: .utf8)) ?? ""
+        do {
+            return try String(contentsOfFile: file, encoding: .utf8)
+        } catch {
+            Log.config.warning("Failed to read copytext: \(error.localizedDescription)")
+            return ""
+        }
     }
 
     static var time: Date {

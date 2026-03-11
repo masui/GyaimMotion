@@ -30,8 +30,11 @@ class GyaimController: IMKInputController {
                 ws = WordSearch(connectionDictFile: dictPath,
                                 localDictFile: Config.localDictFile,
                                 studyDictFile: Config.studyDictFile)
+            } else {
+                Log.input.error("dict.txt not found in bundle")
             }
         }
+        Log.input.info("GyaimController initialized")
 
         if let client = inputClient as? (IMKTextInput & NSObjectProtocol) {
             CopyText.set(NSPasteboard.general.string(forType: .string))
@@ -42,12 +45,14 @@ class GyaimController: IMKInputController {
     }
 
     override func activateServer(_ sender: Any!) {
+        Log.input.info("IME activated")
         CopyText.set(NSPasteboard.general.string(forType: .string))
         ws?.start()
         showWindow()
     }
 
     override func deactivateServer(_ sender: Any!) {
+        Log.input.info("IME deactivated")
         hideWindow()
         fix()
         ws?.finish()
@@ -104,6 +109,7 @@ class GyaimController: IMKInputController {
 
         let keyCode = event.keyCode
         let modifierFlags = event.modifierFlags
+        Log.input.debug("keyDown: keyCode=\(keyCode), chars=\(event.characters ?? ""), mods=\(modifierFlags.rawValue)")
 
 
         if keyCode == kVirtualJISKanaModeKey || keyCode == kVirtualJISRomanModeKey {
@@ -226,9 +232,10 @@ class GyaimController: IMKInputController {
 
     private func searchAndShowCands(client sender: Any?) {
         guard let ws else { return }
-
         if searchMode == 1 {
-            candidates = ws.search(query: inputPat, searchMode: searchMode)
+            candidates = PerfLog.measure("search(\(inputPat), exact)", logger: Log.input) {
+                ws.search(query: inputPat, searchMode: searchMode)
+            }
             let katakana = rk.roma2katakana(inputPat)
             if !katakana.isEmpty {
                 candidates = candidates.filter { $0.word != katakana }
@@ -240,7 +247,9 @@ class GyaimController: IMKInputController {
                 candidates.insert(SearchCandidate(word: hiragana), at: 0)
             }
         } else {
-            candidates = ws.search(query: inputPat, searchMode: searchMode)
+            candidates = PerfLog.measure("search(\(inputPat), prefix)", logger: Log.input) {
+                ws.search(query: inputPat, searchMode: searchMode)
+            }
 
             // Input pattern itself as first candidate
             candidates.insert(SearchCandidate(word: inputPat), at: 0)
@@ -308,6 +317,8 @@ class GyaimController: IMKInputController {
     private func fixAsKana(hiragana: Bool, client sender: Any?) {
         guard converting else { return }
         let word = hiragana ? rk.roma2hiragana(inputPat) : rk.roma2katakana(inputPat)
+        let kanaType = hiragana ? "hiragana" : "katakana"
+        Log.input.info("Fixed as kana(\(kanaType)): \"\(word)\" (input: \"\(inputPat)\", candidates: \(candidates.count))")
 
         let resolvedClient = (sender as? IMKTextInput) ?? (self.client() as? IMKTextInput)
         guard !word.isEmpty, let client = resolvedClient else {
@@ -336,6 +347,9 @@ class GyaimController: IMKInputController {
         }
         let candidate = candidates[nthCand]
         let word = candidate.word
+        let reading = candidate.reading ?? inputPat
+        let candidateWords = candidates.map(\.word)
+        Log.input.info("Fixed: \"\(word)\" (reading: \"\(reading)\", index: \(nthCand)/\(candidates.count), candidates: \(candidateWords))")
 
         guard let client = sender as? IMKTextInput else {
             resetState()

@@ -26,10 +26,13 @@ class WordSearch {
     init(connectionDictFile: String, localDictFile: String, studyDictFile: String) {
         self.localDictFile = localDictFile
         self.studyDictFile = studyDictFile
-        self.connectionDict = ConnectionDict(dictFile: connectionDictFile)
+        self.connectionDict = PerfLog.measure("ConnectionDict load", logger: Log.dict) {
+            ConnectionDict(dictFile: connectionDictFile)
+        }
         self.localDict = Self.loadDict(dictFile: localDictFile)
         self.localDictTime = Self.fileModTime(localDictFile)
         self.studyDict = Self.loadDict(dictFile: studyDictFile)
+        Log.dict.info("WordSearch initialized: local=\(localDict.count), study=\(studyDict.count) entries")
     }
 
     /// Main search method.
@@ -47,6 +50,7 @@ class WordSearch {
         if currentMtime > localDictTime {
             localDict = Self.loadDict(dictFile: localDictFile)
             localDictTime = currentMtime
+            Log.dict.info("Local dict hot-reloaded: \(localDict.count) entries")
         }
 
         var q = query
@@ -172,7 +176,11 @@ class WordSearch {
 
     static func loadDict(dictFile: String) -> [[String]] {
         var dict: [[String]] = []
-        guard let content = try? String(contentsOfFile: dictFile, encoding: .utf8) else {
+        let content: String
+        do {
+            content = try String(contentsOfFile: dictFile, encoding: .utf8)
+        } catch {
+            Log.dict.error("Failed to load dict \(dictFile): \(error.localizedDescription)")
             return dict
         }
         for line in content.split(separator: "\n", omittingEmptySubsequences: false) {
@@ -198,7 +206,11 @@ class WordSearch {
             }
         }
         let content = lines.joined(separator: "\n") + (lines.isEmpty ? "" : "\n")
-        try? content.write(toFile: dictFile, atomically: true, encoding: .utf8)
+        do {
+            try content.write(toFile: dictFile, atomically: true, encoding: .utf8)
+        } catch {
+            Log.dict.error("Failed to save dict \(dictFile): \(error.localizedDescription)")
+        }
     }
 
     private static func fileModTime(_ path: String) -> Date {

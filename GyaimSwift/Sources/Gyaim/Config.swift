@@ -30,7 +30,11 @@ enum Config {
         let fm = FileManager.default
         for dir in [gyaimDir, cacheDir, imageDir] {
             if !fm.fileExists(atPath: dir) {
-                try? fm.createDirectory(atPath: dir, withIntermediateDirectories: true)
+                do {
+                    try fm.createDirectory(atPath: dir, withIntermediateDirectories: true)
+                } catch {
+                    Log.config.error("Failed to create directory \(dir): \(error.localizedDescription)")
+                }
             }
         }
         for file in [localDictFile, studyDictFile] {
@@ -38,5 +42,6 @@ enum Config {
                 fm.createFile(atPath: file, contents: nil)
             }
         }
+        Log.config.info("Config setup complete")
     }
 }

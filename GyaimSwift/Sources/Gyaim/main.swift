@@ -1,6 +1,8 @@
 import Cocoa
 import InputMethodKit
 
+Log.config.info("Gyaim starting")
+
 let server = IMKServer(name: "Gyaim_Connection",
                        bundleIdentifier: Bundle.main.bundleIdentifier!)
 

@@ -7,6 +7,8 @@ class PreferencesWindow: NSWindow {
     private var hiraganaRecorders: [ShortcutRecorderRow] = []
     private var katakanaRecorders: [ShortcutRecorderRow] = []
     private let contentBox = NSView()
+    private var logSizeLabel: NSTextField?
+    private var logToggle: NSButton?
 
     static func show() {
         if shared == nil {
@@ -20,7 +22,7 @@ class PreferencesWindow: NSWindow {
     }
 
     init() {
-        let frame = NSRect(x: 0, y: 0, width: 480, height: 360)
+        let frame = NSRect(x: 0, y: 0, width: 480, height: 440)
         super.init(contentRect: frame,
                    styleMask: [.titled, .closable],
                    backing: .buffered,
@@ -93,6 +95,35 @@ class PreferencesWindow: NSWindow {
         addKataBtn.bezelStyle = .rounded
         addKataBtn.tag = 2
         contentBox.addSubview(addKataBtn)
+
+        // Log section
+        y -= 40
+        let logTitle = makeLabel("ログ", bold: true)
+        logTitle.frame = NSRect(x: 20, y: y, width: 440, height: 24)
+        contentBox.addSubview(logTitle)
+
+        y -= 28
+        let toggle = NSButton(checkboxWithTitle: "ロギングを有効にする", target: self, action: #selector(toggleLogging(_:)))
+        toggle.frame = NSRect(x: 20, y: y, width: 250, height: 20)
+        toggle.state = Log.isEnabled ? .on : .off
+        contentBox.addSubview(toggle)
+        logToggle = toggle
+
+        y -= 24
+        let sizeLabel = makeLabel(logSizeString())
+        sizeLabel.frame = NSRect(x: 20, y: y, width: 200, height: 20)
+        contentBox.addSubview(sizeLabel)
+        logSizeLabel = sizeLabel
+
+        let clearBtn = NSButton(title: "ログを削除", target: self, action: #selector(clearLogs))
+        clearBtn.frame = NSRect(x: 230, y: y - 2, width: 100, height: 24)
+        clearBtn.bezelStyle = .rounded
+        contentBox.addSubview(clearBtn)
+
+        let finderBtn = NSButton(title: "Finderで表示", target: self, action: #selector(showInFinder))
+        finderBtn.frame = NSRect(x: 340, y: y - 2, width: 120, height: 24)
+        finderBtn.bezelStyle = .rounded
+        contentBox.addSubview(finderBtn)
 
         // Bottom buttons
         let saveBtn = NSButton(title: "保存", target: self, action: #selector(saveAndClose))
@@ -196,6 +227,35 @@ class PreferencesWindow: NSWindow {
         addKataBtn.bezelStyle = .rounded
         contentBox.addSubview(addKataBtn)
 
+        // Log section in rebuildLayout
+        y -= 40
+        let logTitle = makeLabel("ログ", bold: true)
+        logTitle.frame = NSRect(x: 20, y: y, width: 440, height: 24)
+        contentBox.addSubview(logTitle)
+
+        y -= 28
+        let toggle = NSButton(checkboxWithTitle: "ロギングを有効にする", target: self, action: #selector(toggleLogging(_:)))
+        toggle.frame = NSRect(x: 20, y: y, width: 250, height: 20)
+        toggle.state = Log.isEnabled ? .on : .off
+        contentBox.addSubview(toggle)
+        logToggle = toggle
+
+        y -= 24
+        let sizeLabel = makeLabel(logSizeString())
+        sizeLabel.frame = NSRect(x: 20, y: y, width: 200, height: 20)
+        contentBox.addSubview(sizeLabel)
+        logSizeLabel = sizeLabel
+
+        let clearBtn = NSButton(title: "ログを削除", target: self, action: #selector(clearLogs))
+        clearBtn.frame = NSRect(x: 230, y: y - 2, width: 100, height: 24)
+        clearBtn.bezelStyle = .rounded
+        contentBox.addSubview(clearBtn)
+
+        let finderBtn = NSButton(title: "Finderで表示", target: self, action: #selector(showInFinder))
+        finderBtn.frame = NSRect(x: 340, y: y - 2, width: 120, height: 24)
+        finderBtn.bezelStyle = .rounded
+        contentBox.addSubview(finderBtn)
+
         let saveBtn = NSButton(title: "保存", target: self, action: #selector(saveAndClose))
         saveBtn.frame = NSRect(x: 380, y: 12, width: 80, height: 32)
         saveBtn.bezelStyle = .rounded
@@ -235,6 +295,38 @@ class PreferencesWindow: NSWindow {
             katakanaRecorders.append(row)
         }
         rebuildLayout()
+    }
+
+    @objc private func toggleLogging(_ sender: NSButton) {
+        let enabled = sender.state == .on
+        Log.setEnabled(enabled)
+        logSizeLabel?.stringValue = logSizeString()
+    }
+
+    @objc private func clearLogs() {
+        FileLogger.shared.clearLog()
+        // Small delay to let the async queue finish
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) { [weak self] in
+            self?.logSizeLabel?.stringValue = self?.logSizeString() ?? "0 B"
+        }
+    }
+
+    @objc private func showInFinder() {
+        let logPath = "\(Config.gyaimDir)/gyaim.log"
+        let fm = FileManager.default
+        if fm.fileExists(atPath: logPath) {
+            NSWorkspace.shared.selectFile(logPath, inFileViewerRootedAtPath: "")
+        } else {
+            NSWorkspace.shared.selectFile(nil, inFileViewerRootedAtPath: Config.gyaimDir)
+        }
+    }
+
+    private func logSizeString() -> String {
+        let size = FileLogger.shared.logFileSize()
+        if size == 0 { return "gyaim.log: 0 B" }
+        let formatter = ByteCountFormatter()
+        formatter.countStyle = .file
+        return "gyaim.log: \(formatter.string(fromByteCount: size))"
     }
 
     private func makeLabel(_ text: String, bold: Bool = false) -> NSTextField {

@@ -78,5 +78,35 @@ docs/adr/
 ├── 002-remove-implicit-candidate-injection.md
 ├── 003-vertical-candidate-window.md
 ├── 004-configurable-keybindings.md
-└── 005-remove-nsapp-unhide.md
+├── 005-remove-nsapp-unhide.md
+├── 006-candidate-window-nspanel.md
+└── 007-unified-logging.md
 ```
+
+## Logging & Monitoring
+
+`GyaimLogger.swift` に os.Logger ベースのロギング基盤を実装。デフォルト無効（UserDefaults `loggingEnabled`）。
+
+### カテゴリ
+
+| カテゴリ | 対象 |
+|---------|------|
+| `input` | キー入力、状態遷移、候補確定 |
+| `dict` | 辞書読込、ホットリロード、学習 |
+| `conversion` | ローマ字変換（debugのみ） |
+| `ui` | ウィンドウ表示/非表示 |
+| `config` | ファイルI/O、設定永続化、起動/終了 |
+
+### ログ確認方法
+
+```bash
+# Console.app / ターミナル
+log stream --predicate 'subsystem == "com.pitecan.inputmethod.Gyaim"' --level debug
+
+# ファイルログ（info以上）
+tail -f ~/.gyaim/gyaim.log
+```
+
+### 設定画面
+
+Gyaim設定 > ログセクションで有効/無効切替、ログ削除、Finderで表示が可能。

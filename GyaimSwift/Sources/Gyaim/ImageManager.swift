@@ -20,7 +20,11 @@ enum ImageManager {
         guard let tiff = resized.tiffRepresentation,
               let rep = NSBitmapImageRep(data: tiff),
               let pngData = rep.representation(using: .png, properties: [:]) else { return }
-        try? pngData.write(to: URL(fileURLWithPath: dst ?? src))
+        do {
+            try pngData.write(to: URL(fileURLWithPath: dst ?? src))
+        } catch {
+            Log.config.warning("Failed to write resized image: \(error.localizedDescription)")
+        }
     }
 
     /// Generate a solid color PNG image.
@@ -35,7 +39,11 @@ enum ImageManager {
         guard let tiff = image.tiffRepresentation,
               let rep = NSBitmapImageRep(data: tiff),
               let pngData = rep.representation(using: .png, properties: [:]) else { return }
-        try? pngData.write(to: URL(fileURLWithPath: file))
+        do {
+            try pngData.write(to: URL(fileURLWithPath: file))
+        } catch {
+            Log.config.warning("Failed to write generated PNG: \(error.localizedDescription)")
+        }
     }
 
     /// Paste a Gyazo image to a text view as an attachment.
