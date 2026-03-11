@@ -51,7 +51,7 @@ Bidirectional romaji-kana conversion with 350+ rules in `rklist`. Includes full-
 | File | Purpose |
 |------|---------|
 | CandidateWindow.swift | Vertical candidate list (NSStackView), numbered 1-9, screen-edge aware positioning |
-| PreferencesWindow.swift | Keyboard shortcut configuration UI |
+| PreferencesWindow.swift | キーボードショートカット設定、候補トグル（クリップボード/選択テキスト）、ログ管理UI。動的ウィンドウリサイズ対応 |
 | DictEditorWindow.swift | User dictionary editor (NSTableView), add/delete/save/reload |
 | KeyBindings.swift | Configurable shortcuts, UserDefaults persistence, single-key kana confirm |
 
@@ -62,6 +62,44 @@ Bidirectional romaji-kana conversion with 350+ rules in `rklist`. Includes full-
 - **NSApp.setActivationPolicy** — Use `.accessory` temporarily when opening settings/dict editor windows, revert to `.prohibited` on close
 - **Icon must be 20x20 PDF** for Retina-compatible menu bar display
 - **User data directory**: `~/.gyaim/` (localdict.txt, studydict.txt)
+
+## Testing
+
+### テスト実行
+
+```bash
+# ユニットテスト（108テスト）
+xcodebuild -project Gyaim.xcodeproj -scheme GyaimTests -derivedDataPath .build test
+
+# E2Eテスト（アクセシビリティ権限必要、Gyaimインストール済みの状態で実行）
+xcodebuild -project Gyaim.xcodeproj -scheme GyaimE2ETests -derivedDataPath .build test
+```
+
+### テスト構成
+
+| スイート | ファイル | テスト数 | 内容 |
+|---------|---------|---------|------|
+| HandleEventTests | Tests/GyaimTests/ | 36 | `routeEvent` 静的メソッドによるキー入力分岐の全網羅 |
+| ExternalCandidateTests | Tests/GyaimTests/ | 22 | `isValidExternalCandidate` + `buildPrefixCandidates` |
+| PreferencesWindowTests | Tests/GyaimTests/ | 10 | 設定画面UIテスト（トグル存在・初期状態・クリック操作） |
+| CopyTextTests | Tests/GyaimTests/ | 7 | CopyText ファイルI/O + NSPasteboard.changeCount |
+| RomaKanaTests | Tests/GyaimTests/ | 18 | ローマ字⇔かな変換の双方向テスト |
+| WordSearchTests | Tests/GyaimTests/ | 6 | 辞書検索（前方一致・完全一致・登録） |
+| CryptTests | Tests/GyaimTests/ | 6 | 暗号化/復号のラウンドトリップ |
+| ConnectionDictTests | Tests/GyaimTests/ | 3 | 連接辞書の検索 |
+| GyaimE2ETests | Tests/E2ETests/ | 8 | CGEventによるIME統合テスト（TextEdit上で実操作） |
+
+### テストインフラ
+
+- **MockIMKTextInput** (`Tests/GyaimTests/MockIMKTextInput.swift`) — IMKTextInputプロトコル準拠のモック。`insertedTexts`/`markedTexts` 配列で挿入・マーク済みテキストを記録
+- **NSEventFactory** (`Tests/GyaimTests/NSEventFactory.swift`) — テスト用NSEvent生成ヘルパー（`keyDown`, `backspace`, `enter`, `space`, `escape`）
+- **E2EHelper** (`Tests/E2ETests/E2EHelper.swift`) — CGEventベースのキー入力シミュレーション。TextEditの起動/終了、Gyaim入力ソースの選択、テキスト取得
+
+### テスト方針
+
+- **キー入力ロジック**: `handle(_:client:)` の分岐ロジックを `routeEvent` 静的メソッドに抽出し、副作用なしでユニットテスト可能にしている
+- **UI テスト**: PreferencesWindow を直接インスタンス化し、subview走査でチェックボックスを検索してクリック操作をシミュレート
+- **E2E テスト**: CGEvent でキーボードイベントを生成し、インストール済みGyaimをTextEdit上で操作。アクセシビリティ権限が必要
 
 ## ADR (Architecture Decision Records)
 
@@ -80,7 +118,9 @@ docs/adr/
 ├── 004-configurable-keybindings.md
 ├── 005-remove-nsapp-unhide.md
 ├── 006-candidate-window-nspanel.md
-└── 007-unified-logging.md
+├── 007-unified-logging.md
+├── 008-clipboard-selected-text-candidates.md
+└── 009-route-event-extraction-and-test-strategy.md
 ```
 
 ## Logging & Monitoring
@@ -110,3 +150,9 @@ tail -f ~/.gyaim/gyaim.log
 ### 設定画面
 
 Gyaim設定 > ログセクションで有効/無効切替、ログ削除、Finderで表示が可能。
+
+### 候補設定
+
+Gyaim設定 > 候補セクションで以下を切り替え可能（UserDefaults、即時反映、デフォルトON）:
+- **クリップボード候補**: コピーから5秒以内の入力時にクリップボード内容を候補に表示
+- **選択テキスト候補**: アクティブアプリの選択テキストを候補に表示（IMKTextInput経由で取得可能な範囲のみ）
