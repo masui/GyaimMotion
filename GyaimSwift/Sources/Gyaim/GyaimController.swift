@@ -13,6 +13,10 @@ class GyaimController: IMKInputController {
     private var searchMode = 0
     private var tmpImageDisplayed = false
     private var bsThrough = false
+    /// Clipboard text captured at input start (valid for 5 seconds after copy).
+    private var clipboardCandidate: String?
+    /// Selected text captured at the moment of first keystroke.
+    private var selectedCandidate: String?
 
     private var ws: WordSearch?
     private var rk = RomaKana()
@@ -63,6 +67,8 @@ class GyaimController: IMKInputController {
         candidates = []
         nthCand = 0
         searchMode = 0
+        clipboardCandidate = nil
+        selectedCandidate = nil
     }
 
     private var converting: Bool {
@@ -218,6 +224,10 @@ class GyaimController: IMKInputController {
             if nthCand > 0 || searchMode > 0 {
                 fix(client: sender)
             }
+            // Capture selected text and clipboard only on the first keystroke of a new input
+            if inputPat.isEmpty {
+                captureExternalCandidates(client: sender)
+            }
             inputPat += eventString
             searchAndShowCands(client: sender)
             searchMode = 0
@@ -226,6 +236,43 @@ class GyaimController: IMKInputController {
 
         showWindow()
         return handled
+    }
+
+    // MARK: - External Candidate Capture
+
+    /// Capture selected text and clipboard at input start.
+    /// Called once when the first printable character is typed.
+    private func captureExternalCandidates(client sender: Any?) {
+        // Capture selected text from the active application
+        if let client = sender as? IMKTextInput {
+            let range = client.selectedRange()
+            if let attrStr = client.attributedSubstring(from: range) {
+                let s = attrStr.string
+                if !s.isEmpty {
+                    selectedCandidate = s
+                    Log.input.info("Captured selected text: \"\(s)\"")
+                }
+            }
+        }
+
+        // Capture clipboard text (only if copied within last 5 seconds)
+        let elapsed = Date().timeIntervalSince(CopyText.time)
+        if elapsed < 5.0 {
+            let text = CopyText.get()
+            if !text.isEmpty {
+                clipboardCandidate = text
+                Log.input.info("Captured clipboard text: \"\(text)\" (age: \(String(format: "%.1f", elapsed))s)")
+            }
+        }
+    }
+
+    /// Check if a string is a valid external candidate (not a Gyazo hash, not a URL).
+    private static func isValidExternalCandidate(_ s: String) -> Bool {
+        let trimmed = s.trimmingCharacters(in: .whitespaces)
+        if trimmed.isEmpty { return false }
+        if ImageManager.isImageCandidate(trimmed) { return false }
+        if trimmed.hasPrefix("http") { return false }
+        return true
     }
 
     // MARK: - Search & Display
@@ -249,6 +296,16 @@ class GyaimController: IMKInputController {
         } else {
             candidates = PerfLog.measure("search(\(inputPat), prefix)", logger: Log.input) {
                 ws.search(query: inputPat, searchMode: searchMode)
+            }
+
+            // Prepend selected text if available
+            if let sel = selectedCandidate, Self.isValidExternalCandidate(sel) {
+                candidates.insert(SearchCandidate(word: sel), at: 0)
+            }
+
+            // Prepend clipboard text if available
+            if let clip = clipboardCandidate, Self.isValidExternalCandidate(clip) {
+                candidates.insert(SearchCandidate(word: clip), at: 0)
             }
 
             // Input pattern itself as first candidate
@@ -365,8 +422,13 @@ class GyaimController: IMKInputController {
             client.insertText(word, replacementRange: NSRange(location: NSNotFound, length: NSNotFound))
         }
 
-        // Study logic
-        if let reading = candidate.reading {
+        // Register or study logic
+        let isExternalCandidate = (word == clipboardCandidate || word == selectedCandidate)
+        if isExternalCandidate {
+            // External candidate (clipboard/selected text) → register to user dict
+            ws?.register(word: word, reading: inputPat)
+            Log.input.info("Registered to user dict: \"\(word)\" (reading: \"\(inputPat)\")")
+        } else if let reading = candidate.reading {
             if reading != "ds" {
                 ws?.study(word: word, reading: reading)
             }
