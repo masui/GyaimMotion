@@ -1,6 +1,70 @@
 import Cocoa
 import InputMethodKit
 
+/// Polls NSPasteboard.changeCount to record the actual copy timestamp.
+/// Uses both a RunLoop timer (for main thread) and a GCD timer (for background)
+/// to ensure at least one fires in the IME process environment.
+final class ClipboardMonitor {
+    private let lock = NSLock()
+    private var _changeCount: Int
+    private var _lastChangeDate: Date = .distantPast
+    private var gcdTimer: DispatchSourceTimer?
+    private var runLoopTimer: Timer?
+
+    var changeCount: Int {
+        lock.lock()
+        defer { lock.unlock() }
+        return _changeCount
+    }
+
+    var lastChangeDate: Date {
+        lock.lock()
+        defer { lock.unlock() }
+        return _lastChangeDate
+    }
+
+    init() {
+        _changeCount = NSPasteboard.general.changeCount
+        startPolling()
+    }
+
+    private func startPolling() {
+        // GCD timer (works even without a RunLoop)
+        let source = DispatchSource.makeTimerSource(queue: .global(qos: .utility))
+        source.schedule(deadline: .now() + 0.5, repeating: 0.5)
+        source.setEventHandler { [weak self] in self?.poll() }
+        source.resume()
+        gcdTimer = source
+
+        // RunLoop timer (works on main thread in IME process)
+        DispatchQueue.main.async { [weak self] in
+            let timer = Timer.scheduledTimer(withTimeInterval: 0.5, repeats: true) { [weak self] _ in
+                self?.poll()
+            }
+            RunLoop.main.add(timer, forMode: .common)
+            self?.runLoopTimer = timer
+        }
+    }
+
+    private func poll() {
+        let current = NSPasteboard.general.changeCount
+        lock.lock()
+        if current != _changeCount {
+            _changeCount = current
+            _lastChangeDate = Date()
+            lock.unlock()
+            Log.input.debug("ClipboardMonitor: changeCount → \(current)")
+        } else {
+            lock.unlock()
+        }
+    }
+
+    deinit {
+        gcdTimer?.cancel()
+        runLoopTimer?.invalidate()
+    }
+}
+
 /// Central IME controller implementing InputMethodKit protocol.
 /// Ported from GyaimController.rb (Toshiyuki Masui, 2011-2015)
 @objc(GyaimController)
@@ -13,10 +77,14 @@ class GyaimController: IMKInputController {
     private var searchMode = 0
     private var tmpImageDisplayed = false
     private var bsThrough = false
-    /// Clipboard text captured at input start (valid for 5 seconds after copy).
+    /// Clipboard text captured at input start.
     private var clipboardCandidate: String?
     /// Selected text captured at the moment of first keystroke.
     private var selectedCandidate: String?
+    /// Monitors NSPasteboard.changeCount to record the actual copy time.
+    private static let clipboardMonitor = ClipboardMonitor()
+    /// The changeCount that was last consumed (shown as candidate to user).
+    private static var lastConsumedCC: Int = NSPasteboard.general.changeCount
 
     private var ws: WordSearch?
     private var rk = RomaKana()
@@ -49,7 +117,7 @@ class GyaimController: IMKInputController {
     }
 
     override func activateServer(_ sender: Any!) {
-        Log.input.info("IME activated")
+        Log.input.info("IME activated (pasteboardCC=\(NSPasteboard.general.changeCount), lastConsumedCC=\(GyaimController.lastConsumedCC))")
         CopyText.set(NSPasteboard.general.string(forType: .string))
         ws?.start()
         showWindow()
@@ -238,41 +306,276 @@ class GyaimController: IMKInputController {
         return handled
     }
 
+    // MARK: - Event Routing (Testable)
+
+    /// Describes the outcome of event routing without side effects.
+    struct HandleResult: Equatable {
+        var handled: Bool
+        var action: HandleAction
+
+        enum HandleAction: Equatable {
+            case none
+            case searchAndShow
+            case showCands
+            case fix
+            case fixThenSearchAndShow
+            case fixAsKana(hiragana: Bool)
+            case backspaceInputPat
+            case decrementNthCand
+            case incrementNthCand
+            case setSearchModeAndSearch
+            case numberKeySelect(Int)
+            case jisModKey
+            case emulateDelete
+            case resetTmpImage
+            case undoAndSpace
+            case undoThenInsertChar
+        }
+    }
+
+    /// Pure routing logic extracted from handle(_:client:) for unit testing.
+    /// All branching decisions are encoded in the returned HandleResult.
+    static func routeEvent(
+        character: UInt8,
+        keyCode: UInt16,
+        modifierFlags: NSEvent.ModifierFlags,
+        converting: Bool,
+        nthCand: Int,
+        candidateCount: Int,
+        searchMode: Int,
+        tmpImageDisplayed: Bool,
+        bsThrough: Bool,
+        hiraganaChar: UInt8,
+        katakanaChar: UInt8,
+        matchesHiraganaShortcut: Bool,
+        matchesKatakanaShortcut: Bool,
+        inputPatEmpty: Bool,
+        hasEventString: Bool
+    ) -> HandleResult {
+        let kVirtualJISRomanModeKey: UInt16 = 102
+        let kVirtualJISKanaModeKey: UInt16 = 104
+
+        // JIS kana/roman mode keys
+        if keyCode == kVirtualJISKanaModeKey || keyCode == kVirtualJISRomanModeKey {
+            return HandleResult(handled: true, action: .jisModKey)
+        }
+
+        // Configurable shortcuts: hiragana / katakana confirm (modifier keys)
+        if converting, matchesHiraganaShortcut {
+            return HandleResult(handled: true, action: .fixAsKana(hiragana: true))
+        }
+        if converting, matchesKatakanaShortcut {
+            return HandleResult(handled: true, action: .fixAsKana(hiragana: false))
+        }
+
+        // No event string → handled (consumed, no action)
+        guard hasEventString else {
+            return HandleResult(handled: true, action: .none)
+        }
+
+        let c = character
+
+        // Single-key kana confirm: ; → hiragana, q → katakana (configurable)
+        if converting, modifierFlags.intersection([.control, .command, .option]).isEmpty {
+            if c == hiraganaChar {
+                return HandleResult(handled: true, action: .fixAsKana(hiragana: true))
+            }
+            if c == katakanaChar {
+                return HandleResult(handled: true, action: .fixAsKana(hiragana: false))
+            }
+        }
+
+        // Backspace / Escape
+        if c == 0x08 || c == 0x7f || c == 0x1b {
+            if converting, tmpImageDisplayed, !bsThrough {
+                return HandleResult(handled: true, action: .emulateDelete)
+            }
+            if !bsThrough, converting {
+                if nthCand > 0 {
+                    return HandleResult(handled: true, action: .decrementNthCand)
+                } else {
+                    return HandleResult(handled: true, action: .backspaceInputPat)
+                }
+            }
+            return HandleResult(handled: false, action: .none)
+        }
+
+        // Space
+        if c == 0x20 {
+            if converting {
+                if tmpImageDisplayed {
+                    return HandleResult(handled: true, action: .undoAndSpace)
+                }
+                if nthCand < candidateCount - 1 {
+                    return HandleResult(handled: true, action: .incrementNthCand)
+                }
+                return HandleResult(handled: true, action: .none)
+            }
+            return HandleResult(handled: false, action: .none)
+        }
+
+        // Enter
+        if c == 0x0a || c == 0x0d {
+            if converting {
+                if tmpImageDisplayed {
+                    return HandleResult(handled: true, action: .resetTmpImage)
+                }
+                if searchMode > 0 {
+                    return HandleResult(handled: true, action: .fix)
+                } else {
+                    if nthCand == 0 {
+                        return HandleResult(handled: true, action: .setSearchModeAndSearch)
+                    } else {
+                        return HandleResult(handled: true, action: .fix)
+                    }
+                }
+            }
+            return HandleResult(handled: false, action: .none)
+        }
+
+        // Number keys 1-9: select candidate from list (only when list is visible)
+        if converting, nthCand > 0 || searchMode > 0,
+           c >= 0x31, c <= 0x39,
+           modifierFlags.intersection([.control, .command, .option]).isEmpty {
+            let num = Int(c - 0x30)
+            let targetIndex = nthCand + num
+            if targetIndex < candidateCount {
+                return HandleResult(handled: true, action: .numberKeySelect(targetIndex))
+            }
+            return HandleResult(handled: true, action: .none)
+        }
+
+        // Printable character (0x21-0x7e), no Control/Command/Option
+        if c >= 0x21, c <= 0x7e,
+           modifierFlags.intersection([.control, .command, .option]).isEmpty {
+            if nthCand > 0 || searchMode > 0 {
+                return HandleResult(handled: true, action: .fixThenSearchAndShow)
+            }
+            return HandleResult(handled: true, action: .searchAndShow)
+        }
+
+        return HandleResult(handled: false, action: .none)
+    }
+
     // MARK: - External Candidate Capture
 
     /// Capture selected text and clipboard at input start.
     /// Called once when the first printable character is typed.
+    static var isClipboardCandidateEnabled: Bool {
+        // Default true — UserDefaults returns false for unset booleans,
+        // so we use object(forKey:) to detect "never set" and default to true.
+        UserDefaults.standard.object(forKey: "clipboardCandidateEnabled") == nil
+            ? true
+            : UserDefaults.standard.bool(forKey: "clipboardCandidateEnabled")
+    }
+    static func setClipboardCandidateEnabled(_ value: Bool) {
+        UserDefaults.standard.set(value, forKey: "clipboardCandidateEnabled")
+    }
+
+    static var isSelectedTextCandidateEnabled: Bool {
+        UserDefaults.standard.object(forKey: "selectedTextCandidateEnabled") == nil
+            ? true
+            : UserDefaults.standard.bool(forKey: "selectedTextCandidateEnabled")
+    }
+    static func setSelectedTextCandidateEnabled(_ value: Bool) {
+        UserDefaults.standard.set(value, forKey: "selectedTextCandidateEnabled")
+    }
+
     private func captureExternalCandidates(client sender: Any?) {
         // Capture selected text from the active application
-        if let client = sender as? IMKTextInput {
-            let range = client.selectedRange()
-            if let attrStr = client.attributedSubstring(from: range) {
-                let s = attrStr.string
-                if !s.isEmpty {
-                    selectedCandidate = s
-                    Log.input.info("Captured selected text: \"\(s)\"")
+        if GyaimController.isSelectedTextCandidateEnabled {
+            if let client = sender as? IMKTextInput {
+                let range = client.selectedRange()
+                if range.length > 0 {
+                    if let attrStr = client.attributedSubstring(from: range) {
+                        let s = attrStr.string
+                        if !s.isEmpty {
+                            selectedCandidate = s
+                            Log.input.info("Captured selected text: \"\(s)\"")
+                        }
+                    }
                 }
             }
         }
 
-        // Capture clipboard text (only if copied within last 5 seconds)
-        let elapsed = Date().timeIntervalSince(CopyText.time)
-        if elapsed < 5.0 {
-            let text = CopyText.get()
-            if !text.isEmpty {
-                clipboardCandidate = text
-                Log.input.info("Captured clipboard text: \"\(text)\" (age: \(String(format: "%.1f", elapsed))s)")
+        // Clipboard candidate logic:
+        // - ClipboardMonitor polls changeCount every 0.5s to record WHEN the copy happened
+        // - We compare current changeCount against lastConsumedCC (static, survives instance recreation)
+        // - Only show if: new copy detected AND copy happened within 5 seconds
+        guard GyaimController.isClipboardCandidateEnabled else { return }
+
+        let currentCC = NSPasteboard.general.changeCount
+        let monitor = GyaimController.clipboardMonitor
+
+        // If the monitor hasn't caught up yet (copy happened between polls),
+        // the copy is very recent — treat elapsed as 0.
+        let monitorCC = monitor.changeCount
+        let elapsed: TimeInterval
+        if currentCC == monitorCC {
+            elapsed = Date().timeIntervalSince(monitor.lastChangeDate)
+        } else {
+            elapsed = 0
+        }
+
+        if currentCC != GyaimController.lastConsumedCC {
+            GyaimController.lastConsumedCC = currentCC
+
+            if elapsed < 5.0 {
+                if let text = NSPasteboard.general.string(forType: .string), !text.isEmpty {
+                    clipboardCandidate = text
+                    Log.input.info("Captured clipboard (elapsed: \(String(format: "%.1f", elapsed))s): \"\(text.prefix(50))\"")
+                }
             }
         }
     }
 
     /// Check if a string is a valid external candidate (not a Gyazo hash, not a URL).
-    private static func isValidExternalCandidate(_ s: String) -> Bool {
+    static func isValidExternalCandidate(_ s: String) -> Bool {
         let trimmed = s.trimmingCharacters(in: .whitespaces)
         if trimmed.isEmpty { return false }
         if ImageManager.isImageCandidate(trimmed) { return false }
         if trimmed.hasPrefix("http") { return false }
         return true
+    }
+
+    /// Build prefix-mode candidate list with external candidates injected.
+    /// Extracted for testability.
+    static func buildPrefixCandidates(
+        searchResults: [SearchCandidate],
+        inputPat: String,
+        clipboardCandidate: String?,
+        selectedCandidate: String?,
+        hiragana: String
+    ) -> [SearchCandidate] {
+        var candidates = searchResults
+
+        // Prepend selected text if available
+        if let sel = selectedCandidate, isValidExternalCandidate(sel) {
+            candidates.insert(SearchCandidate(word: sel), at: 0)
+        }
+
+        // Prepend clipboard text if available
+        if let clip = clipboardCandidate, isValidExternalCandidate(clip) {
+            candidates.insert(SearchCandidate(word: clip), at: 0)
+        }
+
+        // Input pattern itself as first candidate
+        candidates.insert(SearchCandidate(word: inputPat), at: 0)
+
+        // Add hiragana if few candidates
+        if candidates.count < 8, !hiragana.isEmpty {
+            candidates.append(SearchCandidate(word: hiragana))
+        }
+
+        // Deduplicate preserving order
+        var seen: Set<String> = []
+        candidates = candidates.filter { c in
+            if seen.contains(c.word) { return false }
+            seen.insert(c.word)
+            return true
+        }
+
+        return candidates
     }
 
     // MARK: - Search & Display
@@ -294,36 +597,17 @@ class GyaimController: IMKInputController {
                 candidates.insert(SearchCandidate(word: hiragana), at: 0)
             }
         } else {
-            candidates = PerfLog.measure("search(\(inputPat), prefix)", logger: Log.input) {
+            let searchResults = PerfLog.measure("search(\(inputPat), prefix)", logger: Log.input) {
                 ws.search(query: inputPat, searchMode: searchMode)
             }
-
-            // Prepend selected text if available
-            if let sel = selectedCandidate, Self.isValidExternalCandidate(sel) {
-                candidates.insert(SearchCandidate(word: sel), at: 0)
-            }
-
-            // Prepend clipboard text if available
-            if let clip = clipboardCandidate, Self.isValidExternalCandidate(clip) {
-                candidates.insert(SearchCandidate(word: clip), at: 0)
-            }
-
-            // Input pattern itself as first candidate
-            candidates.insert(SearchCandidate(word: inputPat), at: 0)
-
-            // Add hiragana if few candidates
-            if candidates.count < 8 {
-                let hiragana = rk.roma2hiragana(inputPat)
-                candidates.append(SearchCandidate(word: hiragana))
-            }
-
-            // Deduplicate preserving order
-            var seen: Set<String> = []
-            candidates = candidates.filter { c in
-                if seen.contains(c.word) { return false }
-                seen.insert(c.word)
-                return true
-            }
+            let hiragana = rk.roma2hiragana(inputPat)
+            candidates = Self.buildPrefixCandidates(
+                searchResults: searchResults,
+                inputPat: inputPat,
+                clipboardCandidate: clipboardCandidate,
+                selectedCandidate: selectedCandidate,
+                hiragana: hiragana
+            )
         }
 
         nthCand = 0

@@ -9,6 +9,8 @@ class PreferencesWindow: NSWindow {
     private let contentBox = NSView()
     private var logSizeLabel: NSTextField?
     private var logToggle: NSButton?
+    private var clipboardToggle: NSButton?
+    private var selectedTextToggle: NSButton?
 
     static func show() {
         if shared == nil {
@@ -22,7 +24,7 @@ class PreferencesWindow: NSWindow {
     }
 
     init() {
-        let frame = NSRect(x: 0, y: 0, width: 480, height: 440)
+        let frame = NSRect(x: 0, y: 0, width: 480, height: 400)
         super.init(contentRect: frame,
                    styleMask: [.titled, .closable],
                    backing: .buffered,
@@ -43,8 +45,17 @@ class PreferencesWindow: NSWindow {
         NSApp.setActivationPolicy(.prohibited)
     }
 
+    override func keyDown(with event: NSEvent) {
+        // Cmd+W to close
+        if event.modifierFlags.contains(.command), event.charactersIgnoringModifiers == "w" {
+            close()
+            return
+        }
+        super.keyDown(with: event)
+    }
+
     private func buildUI() {
-        var y = frame.height - 50
+        var y = frame.height - 60
 
         // Title
         let titleLabel = makeLabel("キーボードショートカット", bold: true)
@@ -96,6 +107,26 @@ class PreferencesWindow: NSWindow {
         addKataBtn.tag = 2
         contentBox.addSubview(addKataBtn)
 
+        // Candidate section
+        y -= 40
+        let candTitle = makeLabel("候補", bold: true)
+        candTitle.frame = NSRect(x: 20, y: y, width: 440, height: 24)
+        contentBox.addSubview(candTitle)
+
+        y -= 28
+        let cbToggle = NSButton(checkboxWithTitle: "クリップボードの内容を候補に表示する", target: self, action: #selector(toggleClipboardCandidate(_:)))
+        cbToggle.frame = NSRect(x: 20, y: y, width: 300, height: 20)
+        cbToggle.state = GyaimController.isClipboardCandidateEnabled ? .on : .off
+        contentBox.addSubview(cbToggle)
+        clipboardToggle = cbToggle
+
+        y -= 24
+        let stToggle = NSButton(checkboxWithTitle: "選択テキストを候補に表示する", target: self, action: #selector(toggleSelectedTextCandidate(_:)))
+        stToggle.frame = NSRect(x: 20, y: y, width: 300, height: 20)
+        stToggle.state = GyaimController.isSelectedTextCandidateEnabled ? .on : .off
+        contentBox.addSubview(stToggle)
+        selectedTextToggle = stToggle
+
         // Log section
         y -= 40
         let logTitle = makeLabel("ログ", bold: true)
@@ -126,6 +157,9 @@ class PreferencesWindow: NSWindow {
         contentBox.addSubview(finderBtn)
 
         // Bottom buttons
+        let bottomMargin: CGFloat = 56 // 12 + 32 (button) + 12 padding
+        resizeToFitContent(lastY: y, bottomMargin: bottomMargin)
+
         let saveBtn = NSButton(title: "保存", target: self, action: #selector(saveAndClose))
         saveBtn.frame = NSRect(x: 380, y: 12, width: 80, height: 32)
         saveBtn.bezelStyle = .rounded
@@ -187,7 +221,7 @@ class PreferencesWindow: NSWindow {
         hiraganaRecorders.forEach { $0.removeFromSuperview() }
         katakanaRecorders.forEach { $0.removeFromSuperview() }
 
-        var y = frame.height - 50
+        var y = frame.height - 60
 
         let titleLabel = makeLabel("キーボードショートカット", bold: true)
         titleLabel.frame = NSRect(x: 20, y: y, width: 440, height: 24)
@@ -227,6 +261,26 @@ class PreferencesWindow: NSWindow {
         addKataBtn.bezelStyle = .rounded
         contentBox.addSubview(addKataBtn)
 
+        // Candidate section in rebuildLayout
+        y -= 40
+        let candTitle = makeLabel("候補", bold: true)
+        candTitle.frame = NSRect(x: 20, y: y, width: 440, height: 24)
+        contentBox.addSubview(candTitle)
+
+        y -= 28
+        let cbToggle = NSButton(checkboxWithTitle: "クリップボードの内容を候補に表示する", target: self, action: #selector(toggleClipboardCandidate(_:)))
+        cbToggle.frame = NSRect(x: 20, y: y, width: 300, height: 20)
+        cbToggle.state = GyaimController.isClipboardCandidateEnabled ? .on : .off
+        contentBox.addSubview(cbToggle)
+        clipboardToggle = cbToggle
+
+        y -= 24
+        let stToggle = NSButton(checkboxWithTitle: "選択テキストを候補に表示する", target: self, action: #selector(toggleSelectedTextCandidate(_:)))
+        stToggle.frame = NSRect(x: 20, y: y, width: 300, height: 20)
+        stToggle.state = GyaimController.isSelectedTextCandidateEnabled ? .on : .off
+        contentBox.addSubview(stToggle)
+        selectedTextToggle = stToggle
+
         // Log section in rebuildLayout
         y -= 40
         let logTitle = makeLabel("ログ", bold: true)
@@ -255,6 +309,9 @@ class PreferencesWindow: NSWindow {
         finderBtn.frame = NSRect(x: 340, y: y - 2, width: 120, height: 24)
         finderBtn.bezelStyle = .rounded
         contentBox.addSubview(finderBtn)
+
+        let bottomMargin: CGFloat = 56
+        resizeToFitContent(lastY: y, bottomMargin: bottomMargin)
 
         let saveBtn = NSButton(title: "保存", target: self, action: #selector(saveAndClose))
         saveBtn.frame = NSRect(x: 380, y: 12, width: 80, height: 32)
@@ -297,6 +354,14 @@ class PreferencesWindow: NSWindow {
         rebuildLayout()
     }
 
+    @objc private func toggleClipboardCandidate(_ sender: NSButton) {
+        GyaimController.setClipboardCandidateEnabled(sender.state == .on)
+    }
+
+    @objc private func toggleSelectedTextCandidate(_ sender: NSButton) {
+        GyaimController.setSelectedTextCandidateEnabled(sender.state == .on)
+    }
+
     @objc private func toggleLogging(_ sender: NSButton) {
         let enabled = sender.state == .on
         Log.setEnabled(enabled)
@@ -327,6 +392,36 @@ class PreferencesWindow: NSWindow {
         let formatter = ByteCountFormatter()
         formatter.countStyle = .file
         return "gyaim.log: \(formatter.string(fromByteCount: size))"
+    }
+
+    /// Resize window so that all content fits. `lastY` is the Y coordinate of
+    /// the lowest content element (before bottom buttons). `bottomMargin` is the
+    /// space reserved for the save/reset buttons at the bottom.
+    private func resizeToFitContent(lastY: CGFloat, bottomMargin: CGFloat) {
+        // Content is laid out top-down from frame.height - 50.
+        // The required height = (frame.height - lastY) + bottomMargin + topPadding
+        let topPadding: CGFloat = 60
+        let contentHeight = (frame.height - lastY) + bottomMargin + topPadding
+        let requiredHeight = max(contentHeight, 300) // minimum height
+
+        // Calculate the offset to shift all existing subviews down
+        let delta = requiredHeight - frame.height
+        if abs(delta) > 1 {
+            // Move all existing subviews by delta (they were placed relative to old frame.height)
+            for subview in contentBox.subviews {
+                subview.frame.origin.y += delta
+            }
+            // Resize the window, keeping the top-left corner stable
+            let oldFrame = self.frame
+            let newFrame = NSRect(
+                x: oldFrame.origin.x,
+                y: oldFrame.origin.y - delta,
+                width: oldFrame.width,
+                height: requiredHeight
+            )
+            setFrame(newFrame, display: true)
+            contentBox.frame = NSRect(x: 0, y: 0, width: newFrame.width, height: newFrame.height)
+        }
     }
 
     private func makeLabel(_ text: String, bold: Bool = false) -> NSTextField {

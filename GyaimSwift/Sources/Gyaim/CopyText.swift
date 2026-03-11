@@ -25,8 +25,10 @@ enum CopyText {
             } catch {
                 Log.config.warning("Failed to write copytext: \(error.localizedDescription)")
             }
+            // Only update timestamp when clipboard content actually changed
+            lastSetTime = Date()
+            Log.config.info("Clipboard updated: \"\(text.prefix(50))\"")
         }
-        lastSetTime = Date()
     }
 
     static func get() -> String {

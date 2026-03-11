@@ -43,3 +43,16 @@ targets:
     frameworks:
       - InputMethodKit
       - Security
+
+  GyaimE2ETests:
+    type: bundle.unit-test
+    platform: macOS
+    sources:
+      - path: Tests/E2ETests
+    settings:
+      SWIFT_VERSION: "5.9"
+      GENERATE_INFOPLIST_FILE: YES
+      PRODUCT_BUNDLE_IDENTIFIER: com.pitecan.inputmethod.Gyaim.E2ETests
+    frameworks:
+      - Carbon
+      - Cocoa
