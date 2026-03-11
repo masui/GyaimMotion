@@ -394,7 +394,6 @@ class GyaimController: IMKInputController {
 
         cw.setFrameOrigin(origin)
         cw.orderFront(nil)
-        NSApp.unhide(nil)
     }
 
     private func hideWindow() {
