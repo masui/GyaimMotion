@@ -12,6 +12,8 @@ class PreferencesWindow: NSWindow {
     private var clipboardToggle: NSButton?
     private var selectedTextToggle: NSButton?
     private var displayModeControl: NSSegmentedControl?
+    private var googleTriggerField: NSTextField?
+    private var googleTransliterateRecorders: [ShortcutRecorderRow] = []
 
     static func show() {
         if shared == nil {
@@ -139,6 +141,51 @@ class PreferencesWindow: NSWindow {
         contentBox.addSubview(stToggle)
         selectedTextToggle = stToggle
 
+        // Google Transliterate section
+        y -= 40
+        let googleTitle = makeLabel("Google変換", bold: true)
+        googleTitle.frame = NSRect(x: 20, y: y, width: 440, height: 24)
+        contentBox.addSubview(googleTitle)
+
+        y -= 28
+        let triggerLabel = makeLabel("トリガー文字:")
+        triggerLabel.frame = NSRect(x: 20, y: y, width: 100, height: 20)
+        contentBox.addSubview(triggerLabel)
+
+        let triggerField = NSTextField()
+        triggerField.frame = NSRect(x: 120, y: y - 2, width: 40, height: 24)
+        triggerField.stringValue = GoogleTransliterate.triggerSuffix
+        triggerField.alignment = .center
+        triggerField.placeholderString = "`"
+        contentBox.addSubview(triggerField)
+        googleTriggerField = triggerField
+
+        let triggerHint = makeLabel("入力末尾に付けてGoogle変換（例: meguro`）")
+        triggerHint.font = NSFont.systemFont(ofSize: 11)
+        triggerHint.textColor = .secondaryLabelColor
+        triggerHint.frame = NSRect(x: 170, y: y, width: 300, height: 20)
+        contentBox.addSubview(triggerHint)
+
+        y -= 28
+        let shortcutLabel = makeLabel("ショートカット:")
+        shortcutLabel.frame = NSRect(x: 20, y: y, width: 120, height: 20)
+        contentBox.addSubview(shortcutLabel)
+
+        for shortcut in KeyBindings.shared.googleTransliterate {
+            y -= 32
+            let row = ShortcutRecorderRow(frame: NSRect(x: 30, y: y, width: 420, height: 28))
+            row.setShortcut(shortcut)
+            row.onRemove = { [weak self] r in self?.removeGoogleTransliterateRow(r) }
+            contentBox.addSubview(row)
+            googleTransliterateRecorders.append(row)
+        }
+
+        y -= 30
+        let addGoogleBtn = NSButton(title: "+ 追加", target: self, action: #selector(addGoogleTransliterateShortcut))
+        addGoogleBtn.frame = NSRect(x: 30, y: y, width: 80, height: 24)
+        addGoogleBtn.bezelStyle = .rounded
+        contentBox.addSubview(addGoogleBtn)
+
         // Log section
         y -= 40
         let logTitle = makeLabel("ログ", bold: true)
@@ -232,6 +279,7 @@ class PreferencesWindow: NSWindow {
         contentBox.subviews.forEach { $0.removeFromSuperview() }
         hiraganaRecorders.forEach { $0.removeFromSuperview() }
         katakanaRecorders.forEach { $0.removeFromSuperview() }
+        googleTransliterateRecorders.forEach { $0.removeFromSuperview() }
 
         var y = frame.height - 60
 
@@ -304,6 +352,48 @@ class PreferencesWindow: NSWindow {
         contentBox.addSubview(stToggle)
         selectedTextToggle = stToggle
 
+        // Google Transliterate section in rebuildLayout
+        y -= 40
+        let googleTitle = makeLabel("Google変換", bold: true)
+        googleTitle.frame = NSRect(x: 20, y: y, width: 440, height: 24)
+        contentBox.addSubview(googleTitle)
+
+        y -= 28
+        let triggerLabel = makeLabel("トリガー文字:")
+        triggerLabel.frame = NSRect(x: 20, y: y, width: 100, height: 20)
+        contentBox.addSubview(triggerLabel)
+
+        let triggerField = NSTextField()
+        triggerField.frame = NSRect(x: 120, y: y - 2, width: 40, height: 24)
+        triggerField.stringValue = GoogleTransliterate.triggerSuffix
+        triggerField.alignment = .center
+        triggerField.placeholderString = "`"
+        contentBox.addSubview(triggerField)
+        googleTriggerField = triggerField
+
+        let triggerHint = makeLabel("入力末尾に付けてGoogle変換（例: meguro`）")
+        triggerHint.font = NSFont.systemFont(ofSize: 11)
+        triggerHint.textColor = .secondaryLabelColor
+        triggerHint.frame = NSRect(x: 170, y: y, width: 300, height: 20)
+        contentBox.addSubview(triggerHint)
+
+        y -= 28
+        let shortcutLabel = makeLabel("ショートカット:")
+        shortcutLabel.frame = NSRect(x: 20, y: y, width: 120, height: 20)
+        contentBox.addSubview(shortcutLabel)
+
+        for row in googleTransliterateRecorders {
+            y -= 32
+            row.frame = NSRect(x: 30, y: y, width: 420, height: 28)
+            contentBox.addSubview(row)
+        }
+
+        y -= 30
+        let addGoogleBtn = NSButton(title: "+ 追加", target: self, action: #selector(addGoogleTransliterateShortcut))
+        addGoogleBtn.frame = NSRect(x: 30, y: y, width: 80, height: 24)
+        addGoogleBtn.bezelStyle = .rounded
+        contentBox.addSubview(addGoogleBtn)
+
         // Log section in rebuildLayout
         y -= 40
         let logTitle = makeLabel("ログ", bold: true)
@@ -348,10 +438,38 @@ class PreferencesWindow: NSWindow {
         contentBox.addSubview(resetBtn)
     }
 
+    @objc private func addGoogleTransliterateShortcut() {
+        let row = ShortcutRecorderRow(frame: .zero)
+        row.onRemove = { [weak self] r in self?.removeGoogleTransliterateRow(r) }
+        googleTransliterateRecorders.append(row)
+        contentBox.addSubview(row)
+        rebuildLayout()
+    }
+
+    private func removeGoogleTransliterateRow(_ row: ShortcutRecorderRow) {
+        row.removeFromSuperview()
+        googleTransliterateRecorders.removeAll { $0 === row }
+        rebuildLayout()
+    }
+
     @objc private func saveAndClose() {
         KeyBindings.shared.hiragana = hiraganaRecorders.compactMap { $0.shortcut }
         KeyBindings.shared.katakana = katakanaRecorders.compactMap { $0.shortcut }
+        KeyBindings.shared.googleTransliterate = googleTransliterateRecorders.compactMap { $0.shortcut }
         KeyBindings.shared.save()
+
+        // Save Google Transliterate trigger suffix (single non-alphanumeric ASCII only)
+        if let field = googleTriggerField {
+            let trigger = field.stringValue.trimmingCharacters(in: .whitespaces)
+            if trigger.count == 1,
+               let ascii = trigger.first?.asciiValue,
+               !(ascii >= 0x30 && ascii <= 0x39),   // not digit
+               !(ascii >= 0x41 && ascii <= 0x5A),   // not uppercase
+               !(ascii >= 0x61 && ascii <= 0x7A) {   // not lowercase
+                GoogleTransliterate.setTriggerSuffix(trigger)
+            }
+        }
+
         close()
     }
 
@@ -359,8 +477,10 @@ class PreferencesWindow: NSWindow {
         KeyBindings.shared.reset()
         hiraganaRecorders.forEach { $0.removeFromSuperview() }
         katakanaRecorders.forEach { $0.removeFromSuperview() }
+        googleTransliterateRecorders.forEach { $0.removeFromSuperview() }
         hiraganaRecorders = []
         katakanaRecorders = []
+        googleTransliterateRecorders = []
 
         for shortcut in KeyBindings.shared.hiragana {
             let row = ShortcutRecorderRow(frame: .zero)
@@ -374,6 +494,11 @@ class PreferencesWindow: NSWindow {
             row.onRemove = { [weak self] r in self?.removeKatakanaRow(r) }
             katakanaRecorders.append(row)
         }
+
+        // Reset trigger suffix to default
+        UserDefaults.standard.removeObject(forKey: "googleTransliterateTrigger")
+        googleTriggerField?.stringValue = GoogleTransliterate.triggerSuffix
+
         rebuildLayout()
     }
 

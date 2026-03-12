@@ -40,7 +40,16 @@ Working directory for build commands: `GyaimSwift/`
 2. **Local Dictionary** (`~/.gyaim/localdict.txt`) — User-registered words, highest priority. Hot reload via mtime check.
 3. **Study Dictionary** (`~/.gyaim/studydict.txt`) — Frequency-based learning (max 1000 entries, MRU ordering).
 
-Search modes: 0 = prefix matching (incremental), 1 = exact matching + auto-add kana variants.
+Search modes: 0 = prefix matching (incremental), 1 = exact matching + auto-add kana variants, 2 = Google Transliterate async results.
+
+### Google Transliterate (GoogleTransliterate.swift)
+
+内蔵辞書で変換できない語のフォールバック。`https://google.com/transliterate` APIにひらがなを送信し、漢字候補を取得。
+
+- **トリガー方式**: サフィックス文字（デフォルト`` ` ``、設定変更可能）またはキーボードショートカット（設定画面で追加）
+- **非同期処理**: URLSession（タイムアウト3秒）→ メインスレッドで候補更新。stale guardで入力変更時の古い結果を破棄
+- **複数セグメント結合**: APIの分割応答を直積で結合（例:「ますいとしゆき」→「増井俊之」「増井敏之」等、上限20件）
+- **UserDefaultsキー**: `googleTransliterateTrigger`（String、サフィックス文字）
 
 ### Text Conversion (RomaKana.swift)
 
@@ -51,9 +60,9 @@ Bidirectional romaji-kana conversion with 350+ rules in `rklist`. Includes full-
 | File | Purpose |
 |------|---------|
 | CandidateWindow.swift | 候補ウィンドウ。リスト表示（縦、番号1-9、最大9候補）とクラシック表示（横並び、candwin.png背景、最大11候補）の2モード対応。`CandidateDisplayMode` enumで切り替え |
-| PreferencesWindow.swift | キーボードショートカット設定、候補表示スタイル切り替え（NSSegmentedControl）、候補トグル（クリップボード/選択テキスト）、ログ管理UI。動的ウィンドウリサイズ対応 |
+| PreferencesWindow.swift | キーボードショートカット設定、候補表示スタイル切り替え（NSSegmentedControl）、候補トグル（クリップボード/選択テキスト）、Google変換設定（トリガー文字・ショートカット）、ログ管理UI。動的ウィンドウリサイズ対応 |
 | DictEditorWindow.swift | User dictionary editor (NSTableView), add/delete/save/reload |
-| KeyBindings.swift | Configurable shortcuts, UserDefaults persistence, single-key kana confirm |
+| KeyBindings.swift | Configurable shortcuts (hiragana/katakana/Google Transliterate), UserDefaults persistence, single-key kana confirm |
 
 ### Key Constraints
 
@@ -68,7 +77,7 @@ Bidirectional romaji-kana conversion with 350+ rules in `rklist`. Includes full-
 ### テスト実行
 
 ```bash
-# ユニットテスト（118テスト）
+# ユニットテスト（148テスト）
 xcodebuild -project Gyaim.xcodeproj -scheme GyaimTests -derivedDataPath .build test
 
 # E2Eテスト（アクセシビリティ権限必要、Gyaimインストール済みの状態で実行）
@@ -79,13 +88,14 @@ xcodebuild -project Gyaim.xcodeproj -scheme GyaimE2ETests -derivedDataPath .buil
 
 | スイート | ファイル | テスト数 | 内容 |
 |---------|---------|---------|------|
-| HandleEventTests | Tests/GyaimTests/ | 36 | `routeEvent` 静的メソッドによるキー入力分岐の全網羅 |
+| HandleEventTests | Tests/GyaimTests/ | 38 | `routeEvent` 静的メソッドによるキー入力分岐の全網羅 |
+| GoogleTransliterateTests | Tests/GyaimTests/ | 20 | フィルタ・候補ビルド・セグメント結合・トリガー設定・タイムアウト |
 | ExternalCandidateTests | Tests/GyaimTests/ | 22 | `isValidExternalCandidate` + `buildPrefixCandidates` |
 | PreferencesWindowTests | Tests/GyaimTests/ | 13 | 設定画面UIテスト（トグル存在・初期状態・クリック操作・表示モード切替） |
 | CandidateWindowTests | Tests/GyaimTests/ | 5 | 表示モード（リスト/クラシック）の切替・描画・最大候補数 |
 | CopyTextTests | Tests/GyaimTests/ | 7 | CopyText ファイルI/O + NSPasteboard.changeCount |
 | RomaKanaTests | Tests/GyaimTests/ | 18 | ローマ字⇔かな変換の双方向テスト |
-| WordSearchTests | Tests/GyaimTests/ | 6 | 辞書検索（前方一致・完全一致・登録） |
+| WordSearchTests | Tests/GyaimTests/ | 9 | 辞書検索（前方一致・完全一致・登録・トリガーサフィックス） |
 | CryptTests | Tests/GyaimTests/ | 6 | 暗号化/復号のラウンドトリップ |
 | ConnectionDictTests | Tests/GyaimTests/ | 3 | 連接辞書の検索 |
 | GyaimE2ETests | Tests/E2ETests/ | 8 | CGEventによるIME統合テスト（TextEdit上で実操作） |
@@ -122,7 +132,8 @@ docs/adr/
 ├── 007-unified-logging.md
 ├── 008-clipboard-selected-text-candidates.md
 ├── 009-route-event-extraction-and-test-strategy.md
-└── 010-candidate-display-mode-toggle.md
+├── 010-candidate-display-mode-toggle.md
+└── 011-google-transliterate-integration.md
 ```
 
 ## Logging & Monitoring
@@ -159,3 +170,9 @@ Gyaim設定 > 候補セクションで以下を切り替え可能（UserDefaults
 - **表示スタイル**: NSSegmentedControlでリスト表示（デフォルト）/ クラシック表示を切り替え。UserDefaultsキー `candidateDisplayMode`（Int, 0=list, 1=classic）
 - **クリップボード候補**: コピーから5秒以内の入力時にクリップボード内容を候補に表示（デフォルトON）
 - **選択テキスト候補**: アクティブアプリの選択テキストを候補に表示（デフォルトON、IMKTextInput経由で取得可能な範囲のみ）
+
+### Google変換設定
+
+Gyaim設定 > Google変換セクションで以下を設定可能:
+- **トリガー文字**: 入力末尾に付けてGoogle変換を発動（デフォルト`` ` ``）。UserDefaultsキー `googleTransliterateTrigger`
+- **ショートカット**: 変換中に押すとGoogle変換を発動（設定画面で追加/削除）。KeyBindingsで永続化

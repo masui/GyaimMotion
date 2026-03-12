@@ -154,6 +154,9 @@ class KeyBindings {
         KeyShortcut(keyCode: 34, controlKey: true, shiftKey: true),                  // Ctrl+Shift+I
     ]
 
+    /// Google Transliterate trigger shortcuts (modifier-key based).
+    var googleTransliterate: [KeyShortcut] = []
+
     /// Single-key confirm (ASCII value, 0 = disabled). Works in converting mode.
     var hiraganaChar: UInt8 = 0x3B   // ;
     var katakanaChar: UInt8 = 0x71   // q
@@ -170,6 +173,10 @@ class KeyBindings {
         katakana.contains { $0.matches(event: event) }
     }
 
+    func matchesGoogleTransliterate(event: NSEvent) -> Bool {
+        googleTransliterate.contains { $0.matches(event: event) }
+    }
+
     func load() {
         guard let data = UserDefaults.standard.data(forKey: defaultsKey) else { return }
         let decoded: StoredBindings
@@ -183,11 +190,13 @@ class KeyBindings {
         katakana = decoded.katakana
         hiraganaChar = decoded.hiraganaChar ?? 0x3B
         katakanaChar = decoded.katakanaChar ?? 0x71
+        googleTransliterate = decoded.googleTransliterate ?? []
     }
 
     func save() {
         let stored = StoredBindings(hiragana: hiragana, katakana: katakana,
-                                    hiraganaChar: hiraganaChar, katakanaChar: katakanaChar)
+                                    hiraganaChar: hiraganaChar, katakanaChar: katakanaChar,
+                                    googleTransliterate: googleTransliterate)
         do {
             let data = try JSONEncoder().encode(stored)
             UserDefaults.standard.set(data, forKey: defaultsKey)
@@ -207,6 +216,7 @@ class KeyBindings {
         ]
         hiraganaChar = 0x3B
         katakanaChar = 0x71
+        googleTransliterate = []
         save()
     }
 
@@ -215,5 +225,6 @@ class KeyBindings {
         let katakana: [KeyShortcut]
         var hiraganaChar: UInt8?
         var katakanaChar: UInt8?
+        var googleTransliterate: [KeyShortcut]?
     }
 }

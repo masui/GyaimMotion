@@ -22,6 +22,7 @@ final class HandleEventTests: XCTestCase {
         katakanaChar: UInt8 = 0x71,
         matchesHiraganaShortcut: Bool = false,
         matchesKatakanaShortcut: Bool = false,
+        matchesGoogleTransliterateShortcut: Bool = false,
         inputPatEmpty: Bool = true,
         hasEventString: Bool = true
     ) -> Result {
@@ -39,6 +40,7 @@ final class HandleEventTests: XCTestCase {
             katakanaChar: katakanaChar,
             matchesHiraganaShortcut: matchesHiraganaShortcut,
             matchesKatakanaShortcut: matchesKatakanaShortcut,
+            matchesGoogleTransliterateShortcut: matchesGoogleTransliterateShortcut,
             inputPatEmpty: inputPatEmpty,
             hasEventString: hasEventString
         )
@@ -450,6 +452,26 @@ final class HandleEventTests: XCTestCase {
             searchMode: 1
         )
         XCTAssertEqual(result, Result(handled: true, action: .fix))
+    }
+
+    // MARK: - Google Transliterate shortcut
+
+    func testGoogleTransliterateShortcutWhenConverting_returnsGoogleTransliterate() {
+        let result = route(
+            converting: true,
+            matchesGoogleTransliterateShortcut: true
+        )
+        XCTAssertEqual(result, Result(handled: true, action: .googleTransliterate))
+    }
+
+    func testGoogleTransliterateShortcutWhenNotConverting_ignored() {
+        let result = route(
+            converting: false,
+            matchesGoogleTransliterateShortcut: true,
+            hasEventString: false
+        )
+        // Not converting → shortcut check skipped, falls through
+        XCTAssertNotEqual(result.action, .googleTransliterate)
     }
 
     // MARK: - Edge: 0x08 (backspace alt) treated same as 0x7F

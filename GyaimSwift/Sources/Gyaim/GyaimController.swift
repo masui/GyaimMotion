@@ -89,6 +89,8 @@ class GyaimController: IMKInputController {
     private var ws: WordSearch?
     private var rk = RomaKana()
     private var candWindow: CandidateWindow?
+    /// Tracks the in-flight Google Transliterate query to discard stale results.
+    private var pendingGoogleQuery: String?
 
     override init!(server: IMKServer!, delegate: Any!, client inputClient: Any!) {
         super.init(server: server, delegate: delegate, client: inputClient)
@@ -137,6 +139,7 @@ class GyaimController: IMKInputController {
         searchMode = 0
         clipboardCandidate = nil
         selectedCandidate = nil
+        pendingGoogleQuery = nil
     }
 
     private var converting: Bool {
@@ -197,6 +200,12 @@ class GyaimController: IMKInputController {
         }
         if converting, KeyBindings.shared.matchesKatakana(event: event) {
             fixAsKana(hiragana: false, client: sender)
+            return true
+        }
+
+        // Google Transliterate shortcut (e.g. Ctrl+G)
+        if converting, KeyBindings.shared.matchesGoogleTransliterate(event: event) {
+            triggerGoogleTransliterate(client: sender)
             return true
         }
 
@@ -330,6 +339,7 @@ class GyaimController: IMKInputController {
             case resetTmpImage
             case undoAndSpace
             case undoThenInsertChar
+            case googleTransliterate
         }
     }
 
@@ -349,6 +359,7 @@ class GyaimController: IMKInputController {
         katakanaChar: UInt8,
         matchesHiraganaShortcut: Bool,
         matchesKatakanaShortcut: Bool,
+        matchesGoogleTransliterateShortcut: Bool = false,
         inputPatEmpty: Bool,
         hasEventString: Bool
     ) -> HandleResult {
@@ -366,6 +377,11 @@ class GyaimController: IMKInputController {
         }
         if converting, matchesKatakanaShortcut {
             return HandleResult(handled: true, action: .fixAsKana(hiragana: false))
+        }
+
+        // Google Transliterate shortcut (e.g. Ctrl+G)
+        if converting, matchesGoogleTransliterateShortcut {
+            return HandleResult(handled: true, action: .googleTransliterate)
         }
 
         // No event string → handled (consumed, no action)
@@ -580,8 +596,46 @@ class GyaimController: IMKInputController {
 
     // MARK: - Search & Display
 
+    /// Trigger Google Transliterate for the current inputPat.
+    /// Called by either suffix trigger (e.g. "meguro`") or shortcut (e.g. Ctrl+G).
+    private func triggerGoogleTransliterate(query: String? = nil, client sender: Any? = nil) {
+        let q = query ?? inputPat
+        guard !q.isEmpty else { return }
+
+        pendingGoogleQuery = q
+        Log.input.info("Google Transliterate triggered: \"\(q)\"")
+
+        // Show query as marked text while waiting
+        candidates = GoogleTransliterate.buildGoogleCandidates(apiResults: [], query: q)
+        nthCand = 0
+        showCands(client: sender ?? self.client())
+
+        GoogleTransliterate.searchCands(q) { [weak self] results in
+            guard let self else { return }
+            // Stale guard: discard if inputPat has changed
+            guard self.pendingGoogleQuery == q else {
+                Log.input.debug("Google Transliterate stale result discarded for \"\(q)\"")
+                return
+            }
+            self.pendingGoogleQuery = nil
+
+            let googleCandidates = GoogleTransliterate.buildGoogleCandidates(
+                apiResults: results, query: q)
+            Log.input.info("Google Transliterate results for \"\(q)\": \(results)")
+            GyaimController.showCands(googleCandidates)
+        }
+    }
+
     private func searchAndShowCands(client sender: Any?) {
         guard let ws else { return }
+
+        // Google Transliterate: suffix trigger (e.g. "meguro`")
+        if GoogleTransliterate.hasTriggerSuffix(inputPat) {
+            let query = GoogleTransliterate.stripTriggerSuffix(inputPat)
+            triggerGoogleTransliterate(query: query, client: sender)
+            return
+        }
+
         if searchMode == 1 {
             candidates = PerfLog.measure("search(\(inputPat), exact)", logger: Log.input) {
                 ws.search(query: inputPat, searchMode: searchMode)
@@ -758,7 +812,9 @@ class GyaimController: IMKInputController {
         candWindow?.orderOut(nil)
     }
 
-    // Class method for async candidate updates (e.g., from Google)
+    /// Class method for async candidate updates (e.g., from Google Transliterate).
+    /// Sets searchMode = 2 to indicate "Google results displayed".
+    /// searchMode values: 0 = prefix, 1 = exact, 2 = Google Transliterate results.
     static func showCands(_ newCandidates: [SearchCandidate]) {
         guard let gc = shared else { return }
         gc.candidates = newCandidates

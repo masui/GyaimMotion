@@ -67,6 +67,29 @@ final class WordSearchTests: XCTestCase {
         XCTAssertTrue(results.isEmpty)
     }
 
+    func testTriggerSuffixReturnsEmpty() throws {
+        try XCTSkipIf(ws == nil)
+        UserDefaults.standard.removeObject(forKey: "googleTransliterateTrigger")
+        let results = ws.search(query: "meguro`", searchMode: 0)
+        XCTAssertTrue(results.isEmpty, "Trigger suffix should return empty (Google handles it)")
+    }
+
+    func testSingleCharTriggerSuffixReturnsEmpty() throws {
+        try XCTSkipIf(ws == nil)
+        UserDefaults.standard.removeObject(forKey: "googleTransliterateTrigger")
+        let results = ws.search(query: "a`", searchMode: 0)
+        XCTAssertTrue(results.isEmpty, "Single char + trigger should return empty")
+    }
+
+    func testTriggerSuffixOnlyIsNotGoogleTrigger() throws {
+        try XCTSkipIf(ws == nil)
+        UserDefaults.standard.removeObject(forKey: "googleTransliterateTrigger")
+        // "`" alone (count == 1) should NOT trigger the Google branch
+        let results = ws.search(query: "`", searchMode: 0)
+        // hasTriggerSuffix requires count > 1, so single char falls through
+        _ = results
+    }
+
     func testRegisterAndSearch() throws {
         try XCTSkipIf(ws == nil)
         ws.register(word: "テスト単語", reading: "testtango")

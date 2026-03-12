@@ -38,7 +38,7 @@ class WordSearch {
     /// Main search method.
     /// - Parameters:
     ///   - query: Input romaji pattern
-    ///   - searchMode: 0 = prefix, 1 = exact
+    ///   - searchMode: 0 = prefix, 1 = exact, 2 = Google Transliterate (handled by Controller)
     ///   - limit: Max results
     /// - Returns: Array of SearchCandidate
     func search(query: String, searchMode: Int, limit: Int = 10) -> [SearchCandidate] {
@@ -57,10 +57,10 @@ class WordSearch {
         var candfound: Set<String> = []
         var candidates: [SearchCandidate] = []
 
-        // Special: Google transliteration (period suffix)
-        if q.count > 1, q.hasSuffix(".") {
-            q.removeLast()
-            // Google transliteration is async/optional — return empty for now
+        // Special: Google transliteration (configurable suffix trigger)
+        // The actual Google API call is handled by GyaimController;
+        // WordSearch returns empty so the controller can fire the async request.
+        if GoogleTransliterate.hasTriggerSuffix(q) {
             return candidates
         }
 
