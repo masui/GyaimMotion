@@ -11,6 +11,7 @@ class PreferencesWindow: NSWindow {
     private var logToggle: NSButton?
     private var clipboardToggle: NSButton?
     private var selectedTextToggle: NSButton?
+    private var displayModeControl: NSSegmentedControl?
 
     static func show() {
         if shared == nil {
@@ -112,6 +113,17 @@ class PreferencesWindow: NSWindow {
         let candTitle = makeLabel("候補", bold: true)
         candTitle.frame = NSRect(x: 20, y: y, width: 440, height: 24)
         contentBox.addSubview(candTitle)
+
+        y -= 28
+        let styleLabel = makeLabel("表示スタイル:")
+        styleLabel.frame = NSRect(x: 20, y: y, width: 100, height: 20)
+        contentBox.addSubview(styleLabel)
+
+        let modeControl = NSSegmentedControl(labels: ["リスト表示", "クラシック表示"], trackingMode: .selectOne, target: self, action: #selector(changeDisplayMode(_:)))
+        modeControl.frame = NSRect(x: 120, y: y - 2, width: 220, height: 24)
+        modeControl.selectedSegment = CandidateDisplayMode.current.rawValue
+        contentBox.addSubview(modeControl)
+        displayModeControl = modeControl
 
         y -= 28
         let cbToggle = NSButton(checkboxWithTitle: "クリップボードの内容を候補に表示する", target: self, action: #selector(toggleClipboardCandidate(_:)))
@@ -268,6 +280,17 @@ class PreferencesWindow: NSWindow {
         contentBox.addSubview(candTitle)
 
         y -= 28
+        let styleLabel = makeLabel("表示スタイル:")
+        styleLabel.frame = NSRect(x: 20, y: y, width: 100, height: 20)
+        contentBox.addSubview(styleLabel)
+
+        let modeControl = NSSegmentedControl(labels: ["リスト表示", "クラシック表示"], trackingMode: .selectOne, target: self, action: #selector(changeDisplayMode(_:)))
+        modeControl.frame = NSRect(x: 120, y: y - 2, width: 220, height: 24)
+        modeControl.selectedSegment = CandidateDisplayMode.current.rawValue
+        contentBox.addSubview(modeControl)
+        displayModeControl = modeControl
+
+        y -= 28
         let cbToggle = NSButton(checkboxWithTitle: "クリップボードの内容を候補に表示する", target: self, action: #selector(toggleClipboardCandidate(_:)))
         cbToggle.frame = NSRect(x: 20, y: y, width: 300, height: 20)
         cbToggle.state = GyaimController.isClipboardCandidateEnabled ? .on : .off
@@ -352,6 +375,12 @@ class PreferencesWindow: NSWindow {
             katakanaRecorders.append(row)
         }
         rebuildLayout()
+    }
+
+    @objc private func changeDisplayMode(_ sender: NSSegmentedControl) {
+        let mode = CandidateDisplayMode(rawValue: sender.selectedSegment) ?? .list
+        CandidateDisplayMode.setCurrent(mode)
+        CandidateWindow.shared?.applyDisplayMode()
     }
 
     @objc private func toggleClipboardCandidate(_ sender: NSButton) {
