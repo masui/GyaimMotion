@@ -132,7 +132,7 @@ enum GoogleTransliterate {
         }
         components.queryItems = [
             URLQueryItem(name: "text", value: hiragana),
-            URLQueryItem(name: "itc", value: "ja-t-i0-handwrit"),
+            URLQueryItem(name: "itc", value: "ja-t-ja-hira-i0-und"),
             URLQueryItem(name: "num", value: "10"),
             URLQueryItem(name: "cp", value: "0"),
             URLQueryItem(name: "cs", value: "1"),
