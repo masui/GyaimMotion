@@ -9,7 +9,7 @@ enum GoogleTransliterate {
     private static let triggerKey = "googleTransliterateTrigger"
     private static let defaultTrigger = "`"
 
-    /// The character suffix that triggers Google Transliterate (default: ".").
+    /// The character suffix that triggers Google Transliterate (default: `` ` ``).
     static var triggerSuffix: String {
         UserDefaults.standard.string(forKey: triggerKey) ?? defaultTrigger
     }
@@ -50,8 +50,14 @@ enum GoogleTransliterate {
         let rk = RomaKana()
         let hiragana = rk.roma2hiragana(query)
         let katakana = rk.roma2katakana(query)
-        let filtered = raw.filter { $0 != hiragana && $0 != katakana }
-        return Array(NSOrderedSet(array: filtered)) as? [String] ?? filtered
+        var seen: Set<String> = []
+        var result: [String] = []
+        for item in raw where item != hiragana && item != katakana {
+            if seen.insert(item).inserted {
+                result.append(item)
+            }
+        }
+        return result
     }
 
     // MARK: - Candidate Building
@@ -111,20 +117,26 @@ enum GoogleTransliterate {
 
     // MARK: - API Call
 
-    /// Search candidates using Google Transliteration API.
+    /// Search candidates using Google Input Tools API.
+    /// Uses `inputtools.google.com/request` endpoint (actively maintained).
     /// - Parameter query: Romaji query string
     /// - Parameter completion: Called on main thread with filtered candidates
     static func searchCands(_ query: String, completion: @escaping ([String]) -> Void) {
         let rk = RomaKana()
         let hiragana = rk.roma2hiragana(query)
 
-        guard var components = URLComponents(string: "https://google.com/transliterate") else {
+        guard var components = URLComponents(string: "https://inputtools.google.com/request") else {
             completion([])
             return
         }
         components.queryItems = [
-            URLQueryItem(name: "langpair", value: "ja-Hira|ja"),
-            URLQueryItem(name: "text", value: hiragana)
+            URLQueryItem(name: "text", value: hiragana),
+            URLQueryItem(name: "itc", value: "ja-t-i0-handwrit"),
+            URLQueryItem(name: "num", value: "10"),
+            URLQueryItem(name: "cp", value: "0"),
+            URLQueryItem(name: "cs", value: "1"),
+            URLQueryItem(name: "ie", value: "utf-8"),
+            URLQueryItem(name: "oe", value: "utf-8")
         ]
         guard let url = components.url else {
             completion([])
@@ -136,15 +148,24 @@ enum GoogleTransliterate {
                   let httpResponse = response as? HTTPURLResponse,
                   (200...299).contains(httpResponse.statusCode),
                   let data,
-                  let json = try? JSONSerialization.jsonObject(with: data) as? [[Any]] else {
+                  let json = try? JSONSerialization.jsonObject(with: data) as? [Any] else {
                 let status = (response as? HTTPURLResponse)?.statusCode ?? -1
-                Log.dict.error("Google Transliterate failed: status=\(status), error=\(error?.localizedDescription ?? "none")")
+                Log.dict.error("Google Input Tools failed: status=\(status), error=\(error?.localizedDescription ?? "none")")
                 DispatchQueue.main.async { completion([]) }
                 return
             }
 
-            // Parse all segments: [["ますい", ["増井","桝井"]], ["としゆき", ["俊之","敏之"]]]
-            let segments = json.compactMap { entry -> [String]? in
+            // Response format: ["SUCCESS", [["input", ["cand1","cand2",...], [], {metadata}], ...]]
+            guard json.count >= 2,
+                  let status = json[0] as? String, status == "SUCCESS",
+                  let entries = json[1] as? [[Any]] else {
+                Log.dict.error("Google Input Tools: unexpected response format")
+                DispatchQueue.main.async { completion([]) }
+                return
+            }
+
+            // Parse all segments
+            let segments = entries.compactMap { entry -> [String]? in
                 guard entry.count > 1, let cands = entry[1] as? [String], !cands.isEmpty else {
                     return nil
                 }
