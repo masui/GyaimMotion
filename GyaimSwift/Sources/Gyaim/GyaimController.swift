@@ -643,9 +643,10 @@ class GyaimController: IMKInputController {
                                  replacementRange: NSRange(location: NSNotFound, length: NSNotFound))
         }
 
-        // Update vertical candidate list
+        // Update candidate list (count depends on display mode)
+        let maxCandList = CandidateDisplayMode.current.maxVisible
         var candList: [String] = []
-        for i in 0..<9 {
+        for i in 0..<maxCandList {
             let idx = nthCand + 1 + i
             guard idx < words.count, let cand = words[safe: idx] else { break }
             candList.append(cand)
@@ -738,20 +739,17 @@ class GyaimController: IMKInputController {
         var lineRect = NSRect.zero
         client.attributes(forCharacterIndex: 0, lineHeightRectangle: &lineRect)
 
-        let cursorOrigin = lineRect.origin
-        let cursorHeight = lineRect.height
-        let winHeight = cw.frame.height
+        let winSize = cw.frame.size
+        let mode = CandidateDisplayMode.current
+        let screenFrame = NSScreen.main?.frame ?? .zero
 
-        var origin = cursorOrigin
-        origin.x -= 5
+        let origin = CandidateWindowPositioner.calculate(
+            lineRect: lineRect,
+            winSize: winSize,
+            screenFrame: screenFrame,
+            mode: mode)
 
-        // If window would go below screen bottom, show above cursor instead
-        if origin.y - winHeight - 5 < 0 {
-            origin.y = cursorOrigin.y + cursorHeight + 5
-        } else {
-            origin.y = cursorOrigin.y - winHeight - 5
-        }
-
+        Log.ui.info("showWindow: lineRect=\(lineRect) winSize=\(winSize) mode=\(mode == .classic ? "classic" : "list") -> origin=\(origin)")
         cw.setFrameOrigin(origin)
         cw.orderFront(nil)
     }

@@ -50,8 +50,8 @@ Bidirectional romaji-kana conversion with 350+ rules in `rklist`. Includes full-
 
 | File | Purpose |
 |------|---------|
-| CandidateWindow.swift | Vertical candidate list (NSStackView), numbered 1-9, screen-edge aware positioning |
-| PreferencesWindow.swift | キーボードショートカット設定、候補トグル（クリップボード/選択テキスト）、ログ管理UI。動的ウィンドウリサイズ対応 |
+| CandidateWindow.swift | 候補ウィンドウ。リスト表示（縦、番号1-9、最大9候補）とクラシック表示（横並び、candwin.png背景、最大11候補）の2モード対応。`CandidateDisplayMode` enumで切り替え |
+| PreferencesWindow.swift | キーボードショートカット設定、候補表示スタイル切り替え（NSSegmentedControl）、候補トグル（クリップボード/選択テキスト）、ログ管理UI。動的ウィンドウリサイズ対応 |
 | DictEditorWindow.swift | User dictionary editor (NSTableView), add/delete/save/reload |
 | KeyBindings.swift | Configurable shortcuts, UserDefaults persistence, single-key kana confirm |
 
@@ -68,7 +68,7 @@ Bidirectional romaji-kana conversion with 350+ rules in `rklist`. Includes full-
 ### テスト実行
 
 ```bash
-# ユニットテスト（108テスト）
+# ユニットテスト（118テスト）
 xcodebuild -project Gyaim.xcodeproj -scheme GyaimTests -derivedDataPath .build test
 
 # E2Eテスト（アクセシビリティ権限必要、Gyaimインストール済みの状態で実行）
@@ -81,7 +81,8 @@ xcodebuild -project Gyaim.xcodeproj -scheme GyaimE2ETests -derivedDataPath .buil
 |---------|---------|---------|------|
 | HandleEventTests | Tests/GyaimTests/ | 36 | `routeEvent` 静的メソッドによるキー入力分岐の全網羅 |
 | ExternalCandidateTests | Tests/GyaimTests/ | 22 | `isValidExternalCandidate` + `buildPrefixCandidates` |
-| PreferencesWindowTests | Tests/GyaimTests/ | 10 | 設定画面UIテスト（トグル存在・初期状態・クリック操作） |
+| PreferencesWindowTests | Tests/GyaimTests/ | 13 | 設定画面UIテスト（トグル存在・初期状態・クリック操作・表示モード切替） |
+| CandidateWindowTests | Tests/GyaimTests/ | 5 | 表示モード（リスト/クラシック）の切替・描画・最大候補数 |
 | CopyTextTests | Tests/GyaimTests/ | 7 | CopyText ファイルI/O + NSPasteboard.changeCount |
 | RomaKanaTests | Tests/GyaimTests/ | 18 | ローマ字⇔かな変換の双方向テスト |
 | WordSearchTests | Tests/GyaimTests/ | 6 | 辞書検索（前方一致・完全一致・登録） |
@@ -120,7 +121,8 @@ docs/adr/
 ├── 006-candidate-window-nspanel.md
 ├── 007-unified-logging.md
 ├── 008-clipboard-selected-text-candidates.md
-└── 009-route-event-extraction-and-test-strategy.md
+├── 009-route-event-extraction-and-test-strategy.md
+└── 010-candidate-display-mode-toggle.md
 ```
 
 ## Logging & Monitoring
@@ -153,6 +155,7 @@ Gyaim設定 > ログセクションで有効/無効切替、ログ削除、Finde
 
 ### 候補設定
 
-Gyaim設定 > 候補セクションで以下を切り替え可能（UserDefaults、即時反映、デフォルトON）:
-- **クリップボード候補**: コピーから5秒以内の入力時にクリップボード内容を候補に表示
-- **選択テキスト候補**: アクティブアプリの選択テキストを候補に表示（IMKTextInput経由で取得可能な範囲のみ）
+Gyaim設定 > 候補セクションで以下を切り替え可能（UserDefaults、即時反映）:
+- **表示スタイル**: NSSegmentedControlでリスト表示（デフォルト）/ クラシック表示を切り替え。UserDefaultsキー `candidateDisplayMode`（Int, 0=list, 1=classic）
+- **クリップボード候補**: コピーから5秒以内の入力時にクリップボード内容を候補に表示（デフォルトON）
+- **選択テキスト候補**: アクティブアプリの選択テキストを候補に表示（デフォルトON、IMKTextInput経由で取得可能な範囲のみ）

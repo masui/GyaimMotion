@@ -10,6 +10,7 @@ final class PreferencesWindowTests: XCTestCase {
         // Reset UserDefaults to ensure clean state
         UserDefaults.standard.removeObject(forKey: "clipboardCandidateEnabled")
         UserDefaults.standard.removeObject(forKey: "selectedTextCandidateEnabled")
+        UserDefaults.standard.removeObject(forKey: "candidateDisplayMode")
         window = PreferencesWindow()
     }
 
@@ -19,6 +20,7 @@ final class PreferencesWindowTests: XCTestCase {
         window = nil
         UserDefaults.standard.removeObject(forKey: "clipboardCandidateEnabled")
         UserDefaults.standard.removeObject(forKey: "selectedTextCandidateEnabled")
+        UserDefaults.standard.removeObject(forKey: "candidateDisplayMode")
         super.tearDown()
     }
 
@@ -28,6 +30,23 @@ final class PreferencesWindowTests: XCTestCase {
     private func findCheckbox(titled title: String) -> NSButton? {
         guard let contentView = window.contentView else { return nil }
         return findButton(in: contentView, titled: title)
+    }
+
+    private func findSegmentedControl() -> NSSegmentedControl? {
+        guard let contentView = window.contentView else { return nil }
+        return findSegmented(in: contentView)
+    }
+
+    private func findSegmented(in view: NSView) -> NSSegmentedControl? {
+        for subview in view.subviews {
+            if let sc = subview as? NSSegmentedControl {
+                return sc
+            }
+            if let found = findSegmented(in: subview) {
+                return found
+            }
+        }
+        return nil
     }
 
     private func findButton(in view: NSView, titled title: String) -> NSButton? {
@@ -115,6 +134,31 @@ final class PreferencesWindowTests: XCTestCase {
         toggle.state = .on
         toggle.sendAction(toggle.action, to: toggle.target)
         XCTAssertTrue(GyaimController.isSelectedTextCandidateEnabled)
+    }
+
+    // MARK: - Display mode control
+
+    func testDisplayModeControlExists() {
+        let control = findSegmentedControl()
+        XCTAssertNotNil(control, "表示スタイルのセグメントコントロールが見つからない")
+    }
+
+    func testDisplayModeControlDefaultIsList() {
+        let control = findSegmentedControl()!
+        XCTAssertEqual(control.selectedSegment, 0, "デフォルトはリスト表示（セグメント0）であるべき")
+    }
+
+    func testClickDisplayModeControlUpdatesUserDefaults() {
+        let control = findSegmentedControl()!
+        // Select classic
+        control.selectedSegment = 1
+        control.sendAction(control.action, to: control.target)
+        XCTAssertEqual(CandidateDisplayMode.current, .classic)
+
+        // Select list
+        control.selectedSegment = 0
+        control.sendAction(control.action, to: control.target)
+        XCTAssertEqual(CandidateDisplayMode.current, .list)
     }
 
     // MARK: - Section title exists
