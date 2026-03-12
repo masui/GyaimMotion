@@ -143,9 +143,9 @@ final class PreferencesWindowTests: XCTestCase {
         XCTAssertNotNil(control, "表示スタイルのセグメントコントロールが見つからない")
     }
 
-    func testDisplayModeControlDefaultIsList() {
+    func testDisplayModeControlDefaultIsClassic() {
         let control = findSegmentedControl()!
-        XCTAssertEqual(control.selectedSegment, 0, "デフォルトはリスト表示（セグメント0）であるべき")
+        XCTAssertEqual(control.selectedSegment, 1, "デフォルトはクラシック表示（セグメント1）であるべき")
     }
 
     func testClickDisplayModeControlUpdatesUserDefaults() {

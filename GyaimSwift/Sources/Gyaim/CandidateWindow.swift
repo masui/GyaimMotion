@@ -5,10 +5,10 @@ enum CandidateDisplayMode: Int {
     case list = 0     // 現行の縦リスト (Google IME風)
     case classic = 1  // オリジナルGyaim風横並び (candwin.png背景)
 
-    /// Current display mode from UserDefaults (default: .list).
+    /// Current display mode from UserDefaults (default: .classic).
     static var current: CandidateDisplayMode {
-        let raw = UserDefaults.standard.object(forKey: "candidateDisplayMode") as? Int ?? 0
-        return CandidateDisplayMode(rawValue: raw) ?? .list
+        let raw = UserDefaults.standard.object(forKey: "candidateDisplayMode") as? Int ?? 1
+        return CandidateDisplayMode(rawValue: raw) ?? .classic
     }
 
     /// Persist the display mode to UserDefaults.

@@ -15,8 +15,8 @@ final class CandidateWindowTests: XCTestCase {
 
     // MARK: - Phase 1: enum + UserDefaults
 
-    func testDefaultDisplayModeIsList() {
-        XCTAssertEqual(CandidateDisplayMode.current, .list)
+    func testDefaultDisplayModeIsClassic() {
+        XCTAssertEqual(CandidateDisplayMode.current, .classic)
     }
 
     func testSetDisplayModeClassic() {
@@ -66,10 +66,11 @@ final class CandidateWindowTests: XCTestCase {
     }
 
     func testApplyDisplayModeSwitches() {
+        CandidateDisplayMode.setCurrent(.list)
         let window = CandidateWindow()
         window.updateCandidates(["A", "B", "C"], selectedIndex: 0)
 
-        // Default list mode — stackView should have labels
+        // List mode — stackView should have labels
         let stackLabels = findStackViewLabels(in: window)
         XCTAssertFalse(stackLabels.isEmpty, "リストモードではstackViewにラベルがあるべき")
 
