@@ -126,6 +126,7 @@ enum GoogleTransliterate {
         let hiragana = rk.roma2hiragana(query)
 
         guard var components = URLComponents(string: "https://inputtools.google.com/request") else {
+            Log.dict.error("Google Input Tools: failed to create URL components")
             completion([])
             return
         }
@@ -139,18 +140,24 @@ enum GoogleTransliterate {
             URLQueryItem(name: "oe", value: "utf-8")
         ]
         guard let url = components.url else {
+            Log.dict.error("Google Input Tools: failed to build URL")
             completion([])
             return
         }
 
+        Log.dict.info("Google Input Tools request: query=\"\(query)\", hiragana=\"\(hiragana)\", url=\(url.absoluteString)")
+        let startTime = CFAbsoluteTimeGetCurrent()
+
         let task = session.dataTask(with: url) { data, response, error in
+            let elapsed = (CFAbsoluteTimeGetCurrent() - startTime) * 1000
+
             guard error == nil,
                   let httpResponse = response as? HTTPURLResponse,
                   (200...299).contains(httpResponse.statusCode),
                   let data,
                   let json = try? JSONSerialization.jsonObject(with: data) as? [Any] else {
                 let status = (response as? HTTPURLResponse)?.statusCode ?? -1
-                Log.dict.error("Google Input Tools failed: status=\(status), error=\(error?.localizedDescription ?? "none")")
+                Log.dict.error("Google Input Tools failed: status=\(status), elapsed=\(String(format: "%.0f", elapsed))ms, error=\(error?.localizedDescription ?? "none")")
                 DispatchQueue.main.async { completion([]) }
                 return
             }
@@ -159,7 +166,7 @@ enum GoogleTransliterate {
             guard json.count >= 2,
                   let status = json[0] as? String, status == "SUCCESS",
                   let entries = json[1] as? [[Any]] else {
-                Log.dict.error("Google Input Tools: unexpected response format")
+                Log.dict.error("Google Input Tools: unexpected response format, elapsed=\(String(format: "%.0f", elapsed))ms")
                 DispatchQueue.main.async { completion([]) }
                 return
             }
@@ -173,13 +180,18 @@ enum GoogleTransliterate {
             }
 
             guard !segments.isEmpty else {
+                Log.dict.info("Google Input Tools: no segments returned for \"\(query)\", elapsed=\(String(format: "%.0f", elapsed))ms")
                 DispatchQueue.main.async { completion([]) }
                 return
             }
 
+            Log.dict.info("Google Input Tools response: \(segments.count) segment(s), candidates=\(segments.map { $0.count }), elapsed=\(String(format: "%.0f", elapsed))ms")
+            Log.dict.debug("Google Input Tools raw segments: \(segments)")
+
             // Combine segments: e.g. [["増井","桝井"],["俊之","敏之"]] → ["増井俊之","増井敏之","桝井俊之","桝井敏之"]
             let combined = combineSegments(segments)
             let filtered = filterCandidates(raw: combined, query: query)
+            Log.dict.info("Google Input Tools final: \(filtered.count) candidates for \"\(query)\" → \(filtered.prefix(5))")
             DispatchQueue.main.async { completion(filtered) }
         }
         task.resume()
