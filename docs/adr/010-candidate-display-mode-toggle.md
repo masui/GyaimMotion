@@ -32,12 +32,16 @@ Accepted
 
 ### 良い点
 - ユーザーが好みの表示スタイルを選択可能
-- 既存のリスト表示はデフォルトのまま（後方互換性）
+- デフォルトはクラシック表示（オリジナルGyaimの操作感を優先）
 - クラシック表示は`candwin.png`を活用し、オリジナルGyaimの雰囲気を再現
 
 ### 悪い点
 - `CandidateWindow`の複雑度が増加（2モード分のUI管理）
 - クラシックモードの最大候補数(11)とリストモード(9)の差異をControllerが意識する必要がある
+
+## 追加設計: CandidateWindowPositioner
+
+ウィンドウ位置計算を `CandidateWindowPositioner.calculate()` 純粋関数として抽出。lineRect・winSize・screenFrame・modeを入力、NSPointを返す。画面端でのフリップ・クランプ処理をユニットテストでカバー。
 
 ## References
 
